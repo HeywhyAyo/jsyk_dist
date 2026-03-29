@@ -1,0 +1,13 @@
+export declare const TEMPLATE: {
+    CONFIRMATION_EMAIL_NAME: string;
+    RESET_EMAIL_NAME: string;
+    TWO_FACTOR_ENABLED_NAME: string;
+    TWO_FACTOR_LOGIN_NAME: string;
+    CONTACT_EMAIL_SUBMISSION_NAME: string;
+    NEW_INVESTMENT_EMAIL_NAME: string;
+    NEW_SUBSCRIPTION_EMAIL_NAME: string;
+    RENEWED_SUBSCRIPTION_NAME: string;
+    NEW_REVIEW_NAME: string;
+    REVIEW_ACCEPTED_NAME: string;
+    REVIEW_REJECTED_NAME: string;
+};

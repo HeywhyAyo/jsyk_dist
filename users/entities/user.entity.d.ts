@@ -1,0 +1,55 @@
+import { UserRole } from "../shared/enum/roleEnum";
+import { ONBOARDLEVEL } from "../shared/enum/onboard";
+import { Review } from "src/products/entities/product.review.entity";
+import { Address } from "./address.entity";
+import { Wallet } from "src/wallet/entities/wallet.entity";
+import { Transaction } from "src/transactions/entities/transaction.entity";
+import { Product } from "src/products/entities/products.entity";
+export declare class User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone_number: string;
+    date_of_birth: string;
+    address: string;
+    additional_note: string;
+    company_name: string;
+    isEmailVerified: boolean;
+    emailVerificationToken: string;
+    emailVerificationTokenExpiry: Date | null;
+    passwordResetToken: string;
+    passwordResetTokenExpiry: Date | null;
+    refreshToken?: string;
+    is2FAEnabled: boolean;
+    twoFactorOTP: string;
+    twoFactorOTPExpiresAt: Date | null;
+    disabled: boolean;
+    disabledBy: {
+        adminID: string;
+        timestamp: string;
+    } | null;
+    enabledBy: {
+        adminID: string;
+        timestamp: string;
+    } | null;
+    role: UserRole;
+    onboard: ONBOARDLEVEL;
+    totpSecret: string;
+    lastLogin: Date;
+    customer_code: string;
+    profile_image: string;
+    reviews: Review[];
+    orders: Review[];
+    addresses: Address[];
+    account_name: string;
+    account_number: string;
+    bank_name: string;
+    bank_code: string;
+    createdAt: Date;
+    updatedAt: Date;
+    wallet: Wallet;
+    transactions: Transaction[];
+    products: Product[];
+}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notification</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; color: #333;">
+  <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+    
+    <div style="font-size: 22px; font-weight: bold; margin-bottom: 20px; color: #fd7e14;">
+      Hello {{name}},
+    </div>
+
+    <div style="font-size: 16px; margin-bottom: 20px;">
+      {{message}}
+    </div>
+
+    {{#if callback}}
+    <a href="{{callback}}" style="display: inline-block; padding: 10px 20px; background-color: #fd7e14; color: #ffffff; text-decoration: none; border-radius: 5px;">
+      Click here to proceed
+    </a>
+    {{/if}}
+
+  
+  </div>
+</body>
+</html>

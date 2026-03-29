@@ -1,0 +1,32 @@
+import { User } from 'src/users/entities/user.entity';
+import { OrderItem } from './order_item.entity';
+import { Address } from 'src/users/entities/address.entity';
+import { OrderStatus } from '../enum/order.status';
+import { ShippingMethod } from '../enum/shipment.methods';
+import { Coupon } from 'src/products/entities/coupon.entity';
+import { Shipment } from 'src/shipments/entities/shipment.entity';
+import { Payment } from 'src/payments/entities/payment.entity';
+export declare class Order {
+    id: string;
+    user: User;
+    userId: string;
+    shippingAddress: Address;
+    shippingAddressId: string;
+    coupon: Coupon;
+    couponId: string;
+    orderNumber: string;
+    status: OrderStatus;
+    shippingMethod: ShippingMethod;
+    notes: string;
+    subtotal: number;
+    discount: number;
+    shippingFee: number;
+    tax: number;
+    total: number;
+    returned: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    items: OrderItem[];
+    payment: Payment;
+    shipment: Shipment;
+}

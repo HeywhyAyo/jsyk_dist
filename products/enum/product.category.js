@@ -1,0 +1,37 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProductCategory = void 0;
+var ProductCategory;
+(function (ProductCategory) {
+    ProductCategory["T_SHIRTS"] = "T_SHIRTS";
+    ProductCategory["SHIRTS"] = "SHIRTS";
+    ProductCategory["HOODIES"] = "HOODIES";
+    ProductCategory["JACKETS"] = "JACKETS";
+    ProductCategory["COATS"] = "COATS";
+    ProductCategory["TROUSERS"] = "TROUSERS";
+    ProductCategory["JEANS"] = "JEANS";
+    ProductCategory["SHORTS"] = "SHORTS";
+    ProductCategory["DRESSES"] = "DRESSES";
+    ProductCategory["SKIRTS"] = "SKIRTS";
+    ProductCategory["ACTIVEWEAR"] = "ACTIVEWEAR";
+    ProductCategory["UNDERWEAR"] = "UNDERWEAR";
+    ProductCategory["SWIMWEAR"] = "SWIMWEAR";
+    ProductCategory["SUITS"] = "SUITS";
+    ProductCategory["SNEAKERS"] = "SNEAKERS";
+    ProductCategory["BOOTS"] = "BOOTS";
+    ProductCategory["SANDALS"] = "SANDALS";
+    ProductCategory["LOAFERS"] = "LOAFERS";
+    ProductCategory["HEELS"] = "HEELS";
+    ProductCategory["FLATS"] = "FLATS";
+    ProductCategory["SLIPPERS"] = "SLIPPERS";
+    ProductCategory["SPORT_SHOES"] = "SPORT_SHOES";
+    ProductCategory["BAGS"] = "BAGS";
+    ProductCategory["BELTS"] = "BELTS";
+    ProductCategory["HATS"] = "HATS";
+    ProductCategory["SUNGLASSES"] = "SUNGLASSES";
+    ProductCategory["WATCHES"] = "WATCHES";
+    ProductCategory["JEWELRY"] = "JEWELRY";
+    ProductCategory["SCARVES"] = "SCARVES";
+    ProductCategory["WALLETS"] = "WALLETS";
+})(ProductCategory || (exports.ProductCategory = ProductCategory = {}));
+//# sourceMappingURL=product.category.js.map

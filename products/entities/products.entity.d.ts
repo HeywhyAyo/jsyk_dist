@@ -1,0 +1,31 @@
+import { ProductCategory } from '../enum/product.category';
+import { ProductType } from '../enum/product.types';
+import { Review } from './product.review.entity';
+import { Gender } from '../enum/gender';
+import { User } from 'src/users/entities/user.entity';
+export declare class Product {
+    id: string;
+    category: ProductCategory;
+    categoryId: string;
+    brand: string;
+    brandId: string;
+    name: string;
+    slug: string;
+    description: string;
+    sku: string;
+    price: number;
+    compareAtPrice: number;
+    stock: number;
+    imageUrl: string;
+    images: string[];
+    gender: Gender;
+    type: ProductType;
+    isActive: boolean;
+    isFeatured: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    tagName: string;
+    tagSlug: string;
+    createdBy: User;
+    reviews: Review[];
+}
