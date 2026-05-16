@@ -2,6 +2,7 @@ import { ShippingMethod } from 'src/orders/enum/shipment.methods';
 export declare class CheckoutItemDto {
     productId: string;
     quantity: number;
+    selectedColor?: string;
 }
 export declare class CheckoutDto {
     items: CheckoutItemDto[];
@@ -10,10 +11,18 @@ export declare class CheckoutDto {
     couponCode?: string;
     notes?: string;
 }
-export declare class VisitorCheckoutDto extends CheckoutDto {
+export declare class VisitorCheckoutDto {
     email: string;
-    firstName?: string;
-    lastName?: string;
+    items: CheckoutItemDto[];
+    shippingMethod: ShippingMethod;
+    couponCode?: string;
+    notes?: string;
+    phone: string;
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode: string;
 }
 export declare class CheckoutBreakdownDto {
     subtotal: number;

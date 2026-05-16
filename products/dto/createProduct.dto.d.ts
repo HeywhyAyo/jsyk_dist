@@ -1,8 +1,14 @@
 import { ProductCategory } from '../enum/product.category';
 import { ProductType } from '../enum/product.types';
 import { Gender } from '../enum/gender';
+import { MusicCategory } from 'src/collection/enum/muscic.category';
+export declare class ProductColorDto {
+    name: string;
+    hexCode: string;
+}
 export declare class CreateProductDto {
     name: string;
+    sizes?: string[];
     description?: string;
     category: ProductCategory;
     type: ProductType;
@@ -12,10 +18,14 @@ export declare class CreateProductDto {
     price: number;
     compareAtPrice?: number;
     stock: number;
-    images?: string[];
+    colors?: ProductColorDto[];
     tagName?: string;
     tagSlug?: string;
     isFeatured?: boolean;
+    collectionId: string;
+    musicCategory: MusicCategory;
+}
+export declare class CreateProductDataDto extends CreateProductDto {
 }
 declare const UpdateProductDto_base: import("@nestjs/common").Type<Partial<CreateProductDto>>;
 export declare class UpdateProductDto extends UpdateProductDto_base {
@@ -23,7 +33,7 @@ export declare class UpdateProductDto extends UpdateProductDto_base {
     product_id: string;
 }
 export declare class AddProductImagesDto {
-    urls: string[];
+    urls?: string[] | null | undefined;
 }
 export declare class RemoveProductImageDto {
     url: string;
@@ -43,5 +53,9 @@ export declare class QueryProductDto {
     sortOrder?: 'ASC' | 'DESC';
     page?: number;
     limit?: number;
+}
+export declare class CreateProductUploadDto {
+    productId: string;
+    videolink: string;
 }
 export {};

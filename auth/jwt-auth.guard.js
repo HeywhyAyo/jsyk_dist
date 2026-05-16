@@ -24,7 +24,7 @@ let JwtAuthGuard = class JwtAuthGuard {
         const request = context.switchToHttp().getRequest();
         const authHeader = request.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Missing or invalid Authorization header");
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Your session has expired or you’re not logged in. Please log in to continue");
             throw new common_1.HttpException(apiResponse, common_1.HttpStatus.UNAUTHORIZED);
         }
         const token = authHeader.split(" ")[1];

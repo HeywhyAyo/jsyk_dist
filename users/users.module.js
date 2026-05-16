@@ -12,9 +12,11 @@ const users_service_1 = require("./users.service");
 const users_controller_1 = require("./users.controller");
 const typeorm_1 = require("@nestjs/typeorm");
 const user_entity_1 = require("./entities/user.entity");
+const address_entity_1 = require("./entities/address.entity");
 const jwt_1 = require("@nestjs/jwt");
 const nodemailer_service_1 = require("../email/nodemailer.service");
 const email_module_1 = require("../email/email.module");
+const wallet_module_1 = require("../wallet/wallet.module");
 let UsersModule = class UsersModule {
 };
 exports.UsersModule = UsersModule;
@@ -22,7 +24,8 @@ exports.UsersModule = UsersModule = __decorate([
     (0, common_1.Module)({
         imports: [
             email_module_1.EmailModule,
-            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, address_entity_1.Address]),
+            (0, common_1.forwardRef)(() => wallet_module_1.WalletModule)
         ],
         controllers: [users_controller_1.UsersController],
         providers: [users_service_1.UsersService, jwt_1.JwtService, nodemailer_service_1.NodemailerService],

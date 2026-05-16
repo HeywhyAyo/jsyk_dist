@@ -8,9 +8,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
+const apiResponse_1 = require("./shared/utilities/apiResponse");
 let AppService = class AppService {
     getHello() {
-        return 'Hello Just so you know - JSYK';
+        return (0, apiResponse_1.createResponse)(true, 'Hello Just so you know - JSYK', true);
     }
 };
 exports.AppService = AppService;

@@ -9,6 +9,7 @@ export declare class OrderItem {
     productName: string;
     sku: string;
     imageUrl: string;
+    selectedColor: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;

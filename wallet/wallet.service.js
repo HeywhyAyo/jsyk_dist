@@ -191,7 +191,7 @@ let WalletService = class WalletService {
             return result;
         }
         catch (error) {
-            throw new common_1.HttpException(error.message || "Error initializing transaction", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new common_1.HttpException("Error initializing transaction", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async paystack_withdraw(userId, amount) {
@@ -443,7 +443,7 @@ let WalletService = class WalletService {
             return result;
         }
         catch (error) {
-            throw new common_1.HttpException(error.message || "Error initializing transaction", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new common_1.HttpException("Error initializing transaction", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async squad_get_Banks() {
@@ -687,6 +687,7 @@ exports.WalletService = WalletService;
 exports.WalletService = WalletService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(wallet_entity_1.Wallet)),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => users_service_1.UsersService))),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         transactions_service_1.TransactionsService,
         users_service_1.UsersService])

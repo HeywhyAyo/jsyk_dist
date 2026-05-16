@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
-const create_user_dto_1 = require("./dto/create-user.dto");
 const swagger_1 = require("@nestjs/swagger");
 const login_user_dto_1 = require("./dto/login-user.dto");
 const resend_confirmation_dto_1 = require("./dto/resend-confirmation.dto");
@@ -28,6 +27,10 @@ const enable_user_dto_1 = require("./dto/enable-user.dto");
 const complete_profile_1 = require("./dto/complete.profile");
 const login_TwoFa_dto_1 = require("./dto/login-TwoFa.dto");
 const nodemailer_service_1 = require("../email/nodemailer.service");
+const create_address_dto_1 = require("./dto/create-address.dto");
+const update_address_dto_1 = require("./dto/update.address.dto");
+const delete_address_dto_1 = require("./dto/delete.address.dto");
+const create_user_dto_1 = require("./dto/create-user.dto");
 let UsersController = class UsersController {
     usersService;
     nodemailerService;
@@ -97,6 +100,18 @@ let UsersController = class UsersController {
     }
     async changePassword(changepassWordDTO, req) {
         return this.usersService.update_user_profile_service(changepassWordDTO, req.user.id);
+    }
+    async getUserAddresses(req) {
+        return this.usersService.getUserAddresses(req.user.id);
+    }
+    async createAddresses(CreateAddressDto, req) {
+        return this.usersService.create_address_service(CreateAddressDto, req.user.id);
+    }
+    async UpdateAddressDto(UpdateAddressDto, req) {
+        return this.usersService.update_user_Address(req.user.id, UpdateAddressDto.addressid, UpdateAddressDto);
+    }
+    async DeleteAddressDto(DeleteAddressDto, req) {
+        return this.usersService.delete_user_Address(req.user.id, DeleteAddressDto);
     }
 };
 exports.UsersController = UsersController;
@@ -431,6 +446,49 @@ __decorate([
     __metadata("design:paramtypes", [reset_password_dto_1.ChangePasswordDTO, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "changePassword", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)("bearerAuth"),
+    (0, swagger_1.ApiOperation)({ summary: "retreive user addresses" }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)("user-addresses"),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getUserAddresses", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)("bearerAuth"),
+    (0, swagger_1.ApiOperation)({ summary: "Create user address" }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)("create-user-address"),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_address_dto_1.CreateAddressDto, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "createAddresses", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)("bearerAuth"),
+    (0, swagger_1.ApiOperation)({ summary: "update this user address" }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)("update-user-address"),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [update_address_dto_1.UpdateAddressDto, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "UpdateAddressDto", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)("bearerAuth"),
+    (0, swagger_1.ApiOperation)({ summary: "delete this user address" }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)("delete-user-address"),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [delete_address_dto_1.DeleteAddressDto, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "DeleteAddressDto", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)("users"),
     __metadata("design:paramtypes", [users_service_1.UsersService,

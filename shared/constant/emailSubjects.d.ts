@@ -11,4 +11,5 @@ export declare const SUBJECTS: {
     INVESTMENT_DELETED_EMAIL: string;
     REVIEW_ACCEPTED: string;
     REVIEW_REJECTED: string;
+    PRODUCT_PURCHASED: string;
 };

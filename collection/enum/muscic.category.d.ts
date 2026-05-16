@@ -1,0 +1,17 @@
+export declare enum MusicCategory {
+    HIP_HOP = "HIP_HOP",
+    AFROBEATS = "AFROBEATS",
+    RNB = "RNB",
+    POP = "POP",
+    REGGAE = "REGGAE",
+    DANCEHALL = "DANCEHALL",
+    AMAPIANO = "AMAPIANO",
+    HIGHLIFE = "HIGHLIFE",
+    JAZZ = "JAZZ",
+    CLASSICAL = "CLASSICAL",
+    ELECTRONIC = "ELECTRONIC",
+    ROCK = "ROCK",
+    GOSPEL = "GOSPEL",
+    COUNTRY = "COUNTRY",
+    ALTERNATIVE = "ALTERNATIVE"
+}

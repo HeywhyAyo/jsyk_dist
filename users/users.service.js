@@ -24,7 +24,6 @@ const bcrypt_util_1 = require("./utils/bcrypt.util");
 const generateToken_1 = require("../shared/utilities/generateToken");
 const onboard_1 = require("./shared/enum/onboard");
 const complete_profile_1 = require("./dto/complete.profile");
-const nodemailer_service_1 = require("../email/nodemailer.service");
 const responseComment_1 = require("../shared/constant/responseComment");
 const insertContent_1 = require("../shared/utilities/insertContent");
 const emailSubjects_1 = require("../shared/constant/emailSubjects");
@@ -36,16 +35,21 @@ const emergency_expire_1 = require("../shared/constant/emergency.expire");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const rethrow_exception_1 = require("../shared/utilities/rethrow-exception");
+const address_entity_1 = require("./entities/address.entity");
+const wallet_service_1 = require("../wallet/wallet.service");
+const address_1 = require("./enum/address");
 let UsersService = class UsersService {
     userRepository;
     jwtService;
-    nodemailerService;
+    addressRepository;
     emailService;
-    constructor(userRepository, jwtService, nodemailerService, emailService) {
+    walletService;
+    constructor(userRepository, jwtService, addressRepository, emailService, walletService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
-        this.nodemailerService = nodemailerService;
+        this.addressRepository = addressRepository;
         this.emailService = emailService;
+        this.walletService = walletService;
     }
     async create(createUserDto, token, expiresIn) {
         const newUser = this.userRepository.create({
@@ -65,10 +69,11 @@ let UsersService = class UsersService {
         return await this.userRepository.save(newUser);
     }
     async sign_in_User_service(dto) {
+        console.log("Login DTO:", dto);
         try {
             if (!dto.email || !dto.password) {
                 const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Email or password cannot be empty");
-                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.NOT_FOUND);
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
             }
             dto.email = this.set_email_to_lowercase(dto.email);
             return await this.loginUser(dto);
@@ -640,7 +645,7 @@ let UsersService = class UsersService {
                 onboard: onboard_1.ONBOARDLEVEL.PROFILE,
             };
             await this.updateUserById(user.id, UpdateUserData);
-            const updatedUserEntity = await this.findUserById(user.id);
+            await this.walletService.createWallet(user.id, "NGN", user);
             const tokens = await this.generateToken(user.id, user.email, user.role);
             await this.saveRefreshToken(user.id, tokens.refreshToken);
             return (0, apiResponse_1.createResponse)(true, "profile completed successfully", tokens);
@@ -951,6 +956,25 @@ let UsersService = class UsersService {
             },
         });
     }
+    async findOneById(id) {
+        return await this.userRepository.findOne({
+            where: {
+                id
+            },
+        });
+    }
+    async admin_user_details(id) {
+        try {
+            const user = await this.findOneById(id);
+            if (!user) {
+                throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)("User not found"), common_1.HttpStatus.NOT_FOUND);
+            }
+            return (0, apiResponse_1.createResponse)(true, "User details fetched", user);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     async login(id, email, role) {
         const payload = { id, email, role };
         const accessToken = this.jwtService.sign(payload, {
@@ -1106,6 +1130,8 @@ let UsersService = class UsersService {
             const data = {
                 id: newUser.id,
                 email: newUser.email,
+                name: newUser.firstName + " " + newUser.lastName,
+                phone: newUser.phone_number
             };
             return data;
         }
@@ -1223,6 +1249,28 @@ let UsersService = class UsersService {
         const newUser = this.userRepository.create(creatAuthUser);
         return await this.userRepository.save(newUser);
     }
+    async getUserAddresses(userId) {
+        try {
+            return await this.addressRepository.find({
+                where: {
+                    userId,
+                },
+            });
+        }
+        catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+    async user_address_service(userid) {
+        try {
+            const addresses = await this.getUserAddresses(userid);
+            return (0, apiResponse_1.createResponse)(true, "User Addresses", addresses);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     generateCardCode(length = 8) {
         const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let result = "";
@@ -1335,6 +1383,145 @@ let UsersService = class UsersService {
         };
         await this.emailService.sendEmail(params);
     }
+    async createVisitorsAddress(createAddressDto, userId) {
+        const { isDefault = true, ...addressData } = createAddressDto;
+        if (isDefault) {
+            await this.addressRepository.update({ userId, isDefault: true }, { isDefault: false });
+        }
+        const address = this.addressRepository.create({
+            ...addressData,
+            label: address_1.AddressLabel.HOME,
+            userId,
+            isDefault: true,
+        });
+        return this.addressRepository.save(address);
+    }
+    async createUserAddress(createAddressDto, userId) {
+        const { isDefault = false, ...addressData } = createAddressDto;
+        if (isDefault) {
+            await this.addressRepository.update({ userId, isDefault: true }, { isDefault: false });
+        }
+        const address = this.addressRepository.create({
+            ...addressData,
+            userId,
+            isDefault,
+        });
+        return this.addressRepository.save(address);
+    }
+    async create_address_service(createAddressDto, userId) {
+        try {
+            const newAddress = await this.createUserAddress(createAddressDto, userId);
+            return (0, apiResponse_1.createResponse)(true, "Address created successfully", newAddress);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
+    async make_system_admin(body) {
+        const { email } = body;
+        if (!email) {
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Email cannot be empty");
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+        }
+        try {
+            const user = await this.findOneByEmail(email);
+            if (user === null) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("This user does not exist");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (user.onboard === onboard_1.ONBOARDLEVEL.CREATED) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("This user cannot be made an admin they are yet to complete there profile");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (user.disabled) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("This user cannot be made an admin, because account has been disabled");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const updatedUser = await this.updateRole(user.id, roleEnum_1.UserRole.ADMIN);
+            if (!updatedUser || updatedUser.affected === 0) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Unable to update user");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const apiResponse = (0, apiResponse_1.createResponse)(true, "Role updated", null);
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
+    async all_users_service(page = 1, limit = 10, search, startDate, endDate) {
+        try {
+            const pageNumber = page;
+            const limitNumber = limit;
+            const startDateParsed = startDate ? new Date(startDate) : undefined;
+            const endDateParsed = endDate ? new Date(endDate) : undefined;
+            const result = await this.findAll(pageNumber, limitNumber, search);
+            if (result.data.length === 0) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("No users in the sysem");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const apiResponse = (0, apiResponse_1.createResponse)(true, "Users fetched successfully", result);
+            return apiResponse;
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
+    async updateAddressById(id, updateAddressDto) {
+        return await this.addressRepository.update(id, {
+            ...updateAddressDto,
+        });
+    }
+    async update_user_Address(userid, addressId, dto) {
+        try {
+            const address = await this.addressRepository.findOne({
+                where: {
+                    id: addressId,
+                    userId: userid,
+                },
+            });
+            if (!address) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("This user does not have an address with the provided ID");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const updateAddressData = {
+                fullName: dto.fullName || address.fullName,
+                phone: dto.phone || address.phone,
+                street: dto.street || address.street,
+                city: dto.city || address.city || "",
+                state: dto.state || address.state || "",
+                country: dto.country || address.country || "",
+                postalCode: dto.postalCode || address.postalCode,
+                isDefault: dto.isDefault || address.isDefault || false,
+            };
+            await this.updateAddressById(addressId, updateAddressData);
+            return (0, apiResponse_1.createResponse)(true, "Address updated successfully", null);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
+    async delete_user_Address(userid, dto) {
+        try {
+            const user = await this.findOneById(userid);
+            if (!user) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("User not found");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.NOT_FOUND);
+            }
+            const deleteResult = await this.addressRepository.delete({
+                id: dto.addressid,
+                userId: userid,
+            });
+            if (deleteResult.affected === 0) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Address not found or not owned by user");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.NOT_FOUND);
+            }
+            return (0, apiResponse_1.createResponse)(true, "Address deleted successfully", null);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     verifyToken(token, secret) {
         const isVerified = speakeasy.totp.verify({
             secret,
@@ -1349,9 +1536,11 @@ exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
+    __param(2, (0, typeorm_1.InjectRepository)(address_entity_1.Address)),
     __param(3, (0, common_1.Inject)(emailServiceToken_1.EMAIL_TOKEN)),
+    __param(4, (0, common_1.Inject)((0, common_1.forwardRef)(() => wallet_service_1.WalletService))),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         jwt_1.JwtService,
-        nodemailer_service_1.NodemailerService, Object])
+        typeorm_2.Repository, Object, wallet_service_1.WalletService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

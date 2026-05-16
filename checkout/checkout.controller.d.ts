@@ -1,10 +1,11 @@
 import { CheckoutService } from './checkout.service';
 import { CheckoutDto, VisitorCheckoutDto } from './dto/checkout.dto';
+import { CustomRequest } from 'src/shared/interfaces/CustomRequest';
 export declare class CheckoutController {
     private readonly checkoutService;
     constructor(checkoutService: CheckoutService);
-    checkout(req: any, dto: CheckoutDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
-        paymentUrl: any;
+    checkout(req: CustomRequest, dto: CheckoutDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
+        paymentUrl: string | null;
         reference: string;
         orderNumber: string;
         breakdown: {
@@ -16,7 +17,7 @@ export declare class CheckoutController {
         };
     }> | undefined>;
     VisitorCheckout(dto: VisitorCheckoutDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
-        paymentUrl: any;
+        paymentUrl: string | null;
         reference: string;
         orderNumber: string;
         breakdown: {

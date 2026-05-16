@@ -23,31 +23,38 @@ const orders_entity_1 = require("../orders/entities/orders.entity");
 const order_status_1 = require("../orders/enum/order.status");
 const products_service_1 = require("../products/products.service");
 const rethrow_exception_1 = require("../shared/utilities/rethrow-exception");
+const apiResponse_1 = require("../shared/utilities/apiResponse");
+const template_names_1 = require("../shared/constant/template.names");
+const users_service_1 = require("../users/users.service");
+const emailSubjects_1 = require("../shared/constant/emailSubjects");
 let WebhooksService = WebhooksService_1 = class WebhooksService {
     paymentRepo;
     orderRepo;
     productService;
+    usersService;
     logger = new common_1.Logger(WebhooksService_1.name);
-    constructor(paymentRepo, orderRepo, productService) {
+    constructor(paymentRepo, orderRepo, productService, usersService) {
         this.paymentRepo = paymentRepo;
         this.orderRepo = orderRepo;
         this.productService = productService;
+        this.usersService = usersService;
     }
     async handleEvent(event) {
         try {
-            this.logger.log(`Received Paystack event: ${event.event}`);
-            switch (event.event) {
-                case 'charge.success':
-                    return await this.handleChargeSuccess(event.data);
+            this.logger.log(`Received Stripe event: ${event.type}`);
+            switch (event.type) {
+                case 'checkout.session.completed':
+                    const session = event.data.object;
+                    return await this.handleChargeSuccess(session);
                     break;
-                case 'charge.failed':
+                case 'checkout.session.async_payment_failed':
                     return await this.handleChargeFailed(event.data);
                     break;
                 case 'refund.processed':
                     return await this.handleRefundProcessed(event.data);
                     break;
                 default:
-                    this.logger.log(`Unhandled Paystack event: ${event.event}`);
+                    this.logger.log(`Unhandled Stripe event: ${event.type}`);
             }
         }
         catch (error) {
@@ -55,8 +62,11 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
         }
     }
     async handleChargeSuccess(data) {
-        const reference = data.reference;
-        const transactionId = String(data.id);
+        const stripe_responseData = data;
+        const metadata = stripe_responseData.metadata;
+        const customer_id = stripe_responseData.customer;
+        const reference = metadata.reference;
+        const txid = String(data.id);
         const amountPaid = data.amount / 100;
         const payment = await this.paymentRepo.findOne({
             where: { transactionId: reference },
@@ -70,29 +80,32 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
         if (!payment) {
             this.logger.error(`No payment found for reference: ${reference}. ` +
                 `Make sure you store the Paystack reference before redirecting the user.`);
-            return;
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`No payment found for reference: ${reference}.`);
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         const userIdFromOrder = payment.order?.user?.id;
-        const userIdFromMetadata = data.metadata?.userId;
+        const userIdFromMetadata = metadata?.userId;
         const userId = userIdFromOrder ?? userIdFromMetadata;
         if (!userId) {
             this.logger.error(`Could not determine userId for reference: ${reference}. ` +
                 `Check that userId is stored in Paystack metadata at payment initialisation.`);
-            return;
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Could not determine userId for reference: ${reference}. `);
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         this.logger.log(`Payment confirmed for user: ${userId} | Order: ${payment.order.orderNumber}`);
         if (payment.status === payment_enums_1.PaymentStatus.PAID) {
             this.logger.warn(`Duplicate webhook for reference: ${reference}. Already processed. Skipping.`);
-            return;
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Duplicate webhook for reference: ${reference}. Already processed. Skipping.`);
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         await this.paymentRepo.update(payment.id, {
             status: payment_enums_1.PaymentStatus.PAID,
-            transactionId,
+            transactionId: reference,
             amount: amountPaid,
             paidAt: new Date(),
             metadata: {
                 userId,
-                paystackReference: data.reference,
+                paymentReference: metadata?.reference,
                 channel: data.channel,
                 currency: data.currency,
                 customerEmail: data.customer?.email,
@@ -111,6 +124,7 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
             }
             catch (err) {
                 this.logger.error(`Failed to decrement stock for product ${item.productId}: ${err.message}`);
+                (0, rethrow_exception_1.rethrowIfHttpException)(err);
             }
         }
         await this.orderRepo.update(payment.order.id, {
@@ -118,6 +132,24 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
         });
         this.logger.log(`Order ${payment.order.orderNumber} CONFIRMED for user: ${userId} | ` +
             `Total: ₦${amountPaid}`);
+        const emailData = {
+            email: payment.order?.user?.email,
+            firstName: payment.order?.user?.firstName ?? "User",
+            orderId: payment.order.id,
+            orderDate: new Date().toLocaleDateString(),
+            products: payment.order.items.map(i => ({
+                productName: i.productName,
+                qty: i.quantity,
+                unitPrice: `£${i.totalPrice}`
+            })),
+            totalPrice: `£${payment.order.total}`,
+            shippingAddress: payment.order?.shippingAddress?.street + ' ' + payment.order?.shippingAddress?.city,
+            trackingLink: 'https://jsyk.com/track-order/' + payment.order.id,
+            year: new Date().getFullYear()
+        };
+        await this.purchaseEailSender(emailData);
+        const apiResponse = (0, apiResponse_1.createResponse)(true, 'Payment processed successfully.', true);
+        throw new common_1.HttpException(apiResponse, common_1.HttpStatus.OK);
     }
     async handleChargeFailed(data) {
         const reference = data.reference;
@@ -167,6 +199,12 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
         });
         this.logger.log(`Order ${payment.order.orderNumber} marked as REFUNDED. Amount: ₦${refundAmount}`);
     }
+    async purchaseEailSender(data) {
+        const emailParameters = {
+            ...data
+        };
+        await this.usersService.sender(data.email, emailSubjects_1.SUBJECTS.PRODUCT_PURCHASED, template_names_1.TEMPLATE.PRODUCT_PURCHASED_NAME, emailParameters);
+    }
 };
 exports.WebhooksService = WebhooksService;
 exports.WebhooksService = WebhooksService = WebhooksService_1 = __decorate([
@@ -175,6 +213,7 @@ exports.WebhooksService = WebhooksService = WebhooksService_1 = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(orders_entity_1.Order)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
-        products_service_1.ProductsService])
+        products_service_1.ProductsService,
+        users_service_1.UsersService])
 ], WebhooksService);
 //# sourceMappingURL=webhooks.service.js.map

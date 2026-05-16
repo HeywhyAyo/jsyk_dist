@@ -6,6 +6,7 @@ exports.TEMPLATE = {
     RESET_EMAIL_NAME: "ResetEmail.html",
     TWO_FACTOR_ENABLED_NAME: "TwoFactor.html",
     TWO_FACTOR_LOGIN_NAME: "TwoFactorLogin.html",
+    PRODUCT_PURCHASED_NAME: "ProductPurchased.html",
     CONTACT_EMAIL_SUBMISSION_NAME: "New Contact Form Submission",
     NEW_INVESTMENT_EMAIL_NAME: "You’ve Made a New Investment!",
     NEW_SUBSCRIPTION_EMAIL_NAME: "You're In! Your Subscription to is Live",

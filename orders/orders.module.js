@@ -10,13 +10,18 @@ exports.OrdersModule = void 0;
 const common_1 = require("@nestjs/common");
 const orders_service_1 = require("./orders.service");
 const orders_controller_1 = require("./orders.controller");
+const typeorm_1 = require("@nestjs/typeorm");
+const orders_entity_1 = require("./entities/orders.entity");
+const auth_module_1 = require("../auth/auth.module");
 let OrdersModule = class OrdersModule {
 };
 exports.OrdersModule = OrdersModule;
 exports.OrdersModule = OrdersModule = __decorate([
     (0, common_1.Module)({
+        imports: [typeorm_1.TypeOrmModule.forFeature([orders_entity_1.Order]), auth_module_1.AuthModule],
         controllers: [orders_controller_1.OrdersController],
         providers: [orders_service_1.OrdersService],
+        exports: [orders_service_1.OrdersService],
     })
 ], OrdersModule);
 //# sourceMappingURL=orders.module.js.map

@@ -7,6 +7,8 @@ const users_service_1 = require("./users/users.service");
 const basicAuth = require("express-basic-auth");
 const express_rate_limit_1 = require("express-rate-limit");
 const swagger_1 = require("@nestjs/swagger");
+const common_1 = require("@nestjs/common");
+const all_exceptions_filter_1 = require("./shared/utilities/all-exceptions.filter");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const userService = app.get(users_service_1.UsersService);
@@ -21,6 +23,10 @@ async function bootstrap() {
         legacyHeaders: false,
         message: 'Too many requests from this IP, please try again after 15 minutes',
     }));
+    app.useGlobalPipes(new common_1.ValidationPipe({
+        transform: true,
+    }));
+    app.useGlobalFilters(new all_exceptions_filter_1.AllExceptionsFilter());
     if (process.env.SEED_SUPER_ADMIN === "true") {
         await (0, seedSuperAdmin_1.seedSuperAdmin)(userService);
     }

@@ -21,6 +21,8 @@ const users_module_1 = require("../users/users.module");
 const users_service_1 = require("../users/users.service");
 const email_module_1 = require("../email/email.module");
 const nodemailer_service_1 = require("../email/nodemailer.service");
+const address_entity_1 = require("../users/entities/address.entity");
+const wallet_module_1 = require("../wallet/wallet.module");
 dotenv.config();
 let AuthModule = class AuthModule {
 };
@@ -33,7 +35,7 @@ exports.AuthModule = AuthModule = __decorate([
                 signOptions: { expiresIn: "1h" },
             }),
             (0, common_1.forwardRef)(() => users_module_1.UsersModule),
-            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]), email_module_1.EmailModule
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, address_entity_1.Address]), email_module_1.EmailModule, (0, common_1.forwardRef)(() => wallet_module_1.WalletModule)
         ],
         providers: [auth_service_1.AuthService, jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, validateUser_guard_1.UserExistsGuard, users_service_1.UsersService, nodemailer_service_1.NodemailerService],
         controllers: [auth_controller_1.AuthController],

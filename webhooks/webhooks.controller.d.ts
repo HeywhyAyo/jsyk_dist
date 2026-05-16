@@ -5,7 +5,9 @@ export declare class WebhooksController {
     private readonly logger;
     constructor(webhookService: WebhooksService);
     private readonly SecretKey;
-    handle(req: Request, signature: string): Promise<{
+    private STRIPE_WEBHOOK_SECRET;
+    private STRIPE_API_KEY;
+    handle(req: Request): Promise<{
         received: boolean;
     }>;
 }

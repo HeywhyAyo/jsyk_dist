@@ -12,6 +12,11 @@ const admin_service_1 = require("./admin.service");
 const admin_controller_1 = require("./admin.controller");
 const auth_module_1 = require("../auth/auth.module");
 const products_module_1 = require("../products/products.module");
+const users_module_1 = require("../users/users.module");
+const artist_song_module_1 = require("../artist_song/artist_song.module");
+const collection_module_1 = require("../collection/collection.module");
+const orders_module_1 = require("../orders/orders.module");
+const draw_module_1 = require("../draw/draw.module");
 let AdminModule = class AdminModule {
 };
 exports.AdminModule = AdminModule;
@@ -19,8 +24,14 @@ exports.AdminModule = AdminModule = __decorate([
     (0, common_1.Module)({
         controllers: [admin_controller_1.AdminController],
         providers: [admin_service_1.AdminService],
-        imports: [auth_module_1.AuthModule, products_module_1.ProductsModule],
-        exports: [],
+        imports: [auth_module_1.AuthModule,
+            products_module_1.ProductsModule,
+            users_module_1.UsersModule,
+            (0, common_1.forwardRef)(() => artist_song_module_1.ArtistSongModule),
+            collection_module_1.CollectionModule,
+            orders_module_1.OrdersModule,
+            draw_module_1.DrawModule],
+        exports: [admin_service_1.AdminService],
     })
 ], AdminModule);
 //# sourceMappingURL=admin.module.js.map

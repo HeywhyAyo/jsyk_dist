@@ -32,7 +32,7 @@ let CheckoutController = class CheckoutController {
 };
 exports.CheckoutController = CheckoutController;
 __decorate([
-    (0, common_1.Post)(),
+    (0, common_1.Post)('standard'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     (0, swagger_1.ApiOperation)({
         summary: 'Initiate checkout',
@@ -60,8 +60,8 @@ initializes a Paystack payment session.
                 summary: 'Standard checkout with coupon',
                 value: {
                     items: [
-                        { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2 },
-                        { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1 },
+                        { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2, selectedColor: '#1A1A1A' },
+                        { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1, selectedColor: null },
                     ],
                     shippingAddressId: 'c4d5e6f7-8901-2345-bcde-f01234567890',
                     shippingMethod: 'EXPRESS',
@@ -172,8 +172,8 @@ initializes a Paystack payment session.
                 summary: 'Standard checkout with coupon',
                 value: {
                     items: [
-                        { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2 },
-                        { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1 },
+                        { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2, selectedColor: '#1A1A1A' },
+                        { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1, selectedColor: null },
                     ],
                     shippingAddressId: 'c4d5e6f7-8901-2345-bcde-f01234567890',
                     shippingMethod: 'EXPRESS',

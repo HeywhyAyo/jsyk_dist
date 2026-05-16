@@ -1,5 +1,4 @@
 import { UsersService } from "./users.service";
-import { CreateUserDto } from "./dto/create-user.dto";
 import { loginUserDto } from "./dto/login-user.dto";
 import { ResendConfirmationDto } from "./dto/resend-confirmation.dto";
 import { verifyUserDto } from "./dto/verify-user.dto";
@@ -10,6 +9,10 @@ import { ChangePasswordDTO, ResetPasswordDTO } from "./dto/reset-password.dto";
 import { EnableTwoFaDto, getOtpWithEmailDTO } from "./dto/enable-user.dto";
 import { loginUser2FaDTO } from "./dto/login-TwoFa.dto";
 import { NodemailerService } from "src/email/nodemailer.service";
+import { CreateAddressDto } from "./dto/create-address.dto";
+import { UpdateAddressDto } from "./dto/update.address.dto";
+import { DeleteAddressDto } from "./dto/delete.address.dto";
+import { CreateUserDto } from "./dto/create-user.dto";
 export declare class UsersController {
     private readonly usersService;
     private nodemailerService;
@@ -100,4 +103,8 @@ export declare class UsersController {
     }> | undefined>;
     UpdateProfile(completeDto: any, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<string> | undefined>;
     changePassword(changepassWordDTO: ChangePasswordDTO, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<string> | undefined>;
+    getUserAddresses(req: CustomRequest): Promise<import("./entities/address.entity").Address[] | null>;
+    createAddresses(CreateAddressDto: CreateAddressDto, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<import("./entities/address.entity").Address> | undefined>;
+    UpdateAddressDto(UpdateAddressDto: UpdateAddressDto, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<null> | undefined>;
+    DeleteAddressDto(DeleteAddressDto: DeleteAddressDto, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<null> | undefined>;
 }

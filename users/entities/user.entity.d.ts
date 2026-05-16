@@ -1,6 +1,7 @@
 import { UserRole } from "../shared/enum/roleEnum";
 import { ONBOARDLEVEL } from "../shared/enum/onboard";
 import { Review } from "src/products/entities/product.review.entity";
+import { Order } from "src/orders/entities/orders.entity";
 import { Address } from "./address.entity";
 import { Wallet } from "src/wallet/entities/wallet.entity";
 import { Transaction } from "src/transactions/entities/transaction.entity";
@@ -41,7 +42,7 @@ export declare class User {
     customer_code: string;
     profile_image: string;
     reviews: Review[];
-    orders: Review[];
+    orders: Order[];
     addresses: Address[];
     account_name: string;
     account_number: string;

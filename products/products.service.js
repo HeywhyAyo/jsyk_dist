@@ -29,9 +29,9 @@ let ProductsService = class ProductsService {
         this.productRepo = productRepo;
         this.usersService = usersService;
     }
-    async create(dto, files, createdBy) {
+    async createProduct(dto, files, createdBy) {
         if (dto.compareAtPrice !== undefined && dto.compareAtPrice <= dto.price) {
-            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('compareAtPrice must be greater than the selling price.');
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('compare At Price must be greater than the selling price.');
             throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         const skuExists = await this.productRepo.existsBy({ sku: dto.sku });
@@ -45,6 +45,7 @@ let ProductsService = class ProductsService {
             slug,
             images: files,
             createdBy,
+            sizes: dto.sizes ? dto.sizes : [],
         });
         return this.productRepo.save(product);
     }
@@ -56,7 +57,26 @@ let ProductsService = class ProductsService {
             const fileBuffers = files.map((file) => file.buffer);
             const uploadUrls = await (0, Cloudinary_1.uploadMultipleImagesToCloudinary)(fileBuffers);
             if (!uploadUrls || uploadUrls.length === 0) {
-                throw new Error("Failed to upload files");
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Failed to upload files");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            return uploadUrls;
+        }
+        catch (error) {
+            console.error("Error uploading images:", error);
+            return null;
+        }
+    }
+    async uploadSingleImage(file) {
+        try {
+            if (!file) {
+                throw new Error("No file provided");
+            }
+            const fileBuffers = file.buffer;
+            const uploadUrls = await (0, Cloudinary_1.uploadImageToCloudinary)(fileBuffers);
+            if (!uploadUrls || uploadUrls.length === 0) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Failed to upload files");
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
             }
             return uploadUrls;
         }
@@ -67,26 +87,76 @@ let ProductsService = class ProductsService {
     }
     async create_product_async(dto, files, userId) {
         try {
+            if (dto.compareAtPrice !== undefined && dto.compareAtPrice <= dto.price) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('compare At Price must be greater than the selling price.');
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const skuExists = await this.productRepo.existsBy({ sku: dto.sku });
+            if (skuExists) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`SKU "${dto.sku}" is already in use. Please choose a different SKU.`);
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.CONFLICT);
+            }
+            if (!dto.name || !dto.price || !dto.category || !dto.gender || !dto.description
+                || !dto.stock || !dto.type || !dto.brand) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('Missing required fields: check and retry again with all.');
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (dto.collectionId && !dto.musicCategory) {
+                throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)('musicCategory is required when assigning a product to a collection.'), common_1.HttpStatus.BAD_REQUEST);
+            }
             const user = await this.usersService.findUserById(userId);
             if (!user) {
                 const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`User not found or Invalid user`);
                 throw new common_1.HttpException(apiResponse, common_1.HttpStatus.NOT_FOUND);
             }
-            dto.images = files;
+            let images = files;
             const uploadedImages = await this.uploadMultipleImages(files);
-            dto.images = uploadedImages ?? [];
-            const product = await this.create(dto, dto.images, user);
+            images = uploadedImages ?? [];
+            const product = await this.createProduct(dto, images, user);
             return (0, apiResponse_1.createResponse)(true, 'Product created successfully', product.id);
         }
         catch (error) {
             (0, rethrow_exception_1.rethrowIfHttpException)(error);
         }
     }
-    async findAll(query) {
-        const { search, category, type, gender, brand, tagSlug, minPrice, maxPrice, isFeatured, inStock, sortBy = 'createdAt', sortOrder = 'DESC', page = 1, limit = 20, } = query;
+    async create_product_upload_async(productid, image, videolink) {
+        try {
+            const hasImage = image;
+            if (!hasImage) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('Please provide at least one file — a image.');
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (hasImage && !allowedImageTypes.includes(hasImage.mimetype)) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Invalid image type "${hasImage.mimetype}". Allowed types: jpg, jpeg, png, webp.`);
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const product = await this.findOneProductByAdmin(productid);
+            if (!product) {
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Product not found or Invalid product ID.`);
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+            }
+            if (hasImage) {
+                const uploadedImage = await this.uploadSingleImage(image);
+                if (uploadedImage) {
+                    product.imageUrl = uploadedImage;
+                }
+            }
+            product.advertVideoUrl = videolink ?? product.advertVideoUrl;
+            await this.productRepo.save(product);
+            return (0, apiResponse_1.createResponse)(true, 'Files uploaded and product updated successfully', product.id);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
+    async findAllforMarketplace(query) {
+        const { search, category, type, gender, brand, minPrice, maxPrice, isFeatured, sortBy = 'createdAt', sortOrder = 'DESC', page = 1, limit = 20, } = query;
+        console.log('Query parameters:', query);
         const qb = this.productRepo
             .createQueryBuilder('product')
-            .where('product.isActive = :isActive', { isActive: true });
+            .where('product.isActive = true')
+            .andWhere('product.stock > 0');
         if (search) {
             qb.andWhere('(product.name ILIKE :search OR product.description ILIKE :search)', { search: `%${search}%` });
         }
@@ -96,21 +166,17 @@ let ProductsService = class ProductsService {
             qb.andWhere('product.type = :type', { type });
         if (gender)
             qb.andWhere('product.gender = :gender', { gender });
-        if (tagSlug)
-            qb.andWhere('product.tagSlug = :tagSlug', { tagSlug });
         if (brand) {
             qb.andWhere('product.brand ILIKE :brand', { brand: `%${brand}%` });
         }
+        if (isFeatured !== undefined)
+            qb.andWhere('product.isFeatured = :isFeatured', { isFeatured });
         if (minPrice !== undefined)
             qb.andWhere('product.price >= :minPrice', { minPrice });
         if (maxPrice !== undefined)
             qb.andWhere('product.price <= :maxPrice', { maxPrice });
-        if (isFeatured !== undefined)
-            qb.andWhere('product.isFeatured = :isFeatured', { isFeatured });
-        if (inStock)
-            qb.andWhere('product.stock > 0');
-        const allowedSortColumns = ['price', 'createdAt', 'name', 'stock'];
-        const column = allowedSortColumns.includes(sortBy) ? sortBy : 'createdAt';
+        const sortableColumns = ['price', 'createdAt', 'name', 'stock'];
+        const column = sortableColumns.includes(sortBy) ? sortBy : 'createdAt';
         qb.orderBy(`product.${column}`, sortOrder === 'ASC' ? 'ASC' : 'DESC');
         const skip = (page - 1) * limit;
         qb.skip(skip).take(limit);
@@ -123,14 +189,32 @@ let ProductsService = class ProductsService {
             totalPages: Math.ceil(total / limit),
         };
     }
+    async find_all_for_marketplace(query) {
+        try {
+            const result = await this.findAllforMarketplace(query);
+            return (0, apiResponse_1.createResponse)(true, 'Products retrieved successfully.', result);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     async findOne(id) {
         const product = await this.productRepo.findOne({
             where: { id, isActive: true },
-            relations: { reviews: true },
+            relations: { reviews: true, songs: true },
         });
         if (!product)
             throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)(`Product #${id} not found.`), common_1.HttpStatus.NOT_FOUND);
         return product;
+    }
+    async find_One_product(id) {
+        try {
+            const product = await this.findOne(id);
+            return (0, apiResponse_1.createResponse)(true, 'Product retrieved successfully.', product);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
     }
     async findBySlug(slug) {
         const product = await this.productRepo.findOne({
@@ -141,18 +225,31 @@ let ProductsService = class ProductsService {
             throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)(`Product "${slug}" not found.`), common_1.HttpStatus.BAD_REQUEST);
         return product;
     }
+    async find_One_product_by_slug(slug) {
+        try {
+            const product = await this.findBySlug(slug);
+            return (0, apiResponse_1.createResponse)(true, 'Product retrieved successfully.', product);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     async update(id, dto) {
-        const product = await this.findOneAdmin(id);
+        const product = await this.findOneProductByAdmin(id);
         if (dto.compareAtPrice !== undefined) {
             const effectivePrice = dto.price ?? product.price;
             if (dto.compareAtPrice <= effectivePrice) {
-                throw new common_1.BadRequestException('compareAtPrice must be greater than the selling price.');
+                throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)('compareAtPrice must be greater than the selling price.'), common_1.HttpStatus.BAD_REQUEST);
+                ;
             }
+        }
+        if (dto.collectionId && !dto.musicCategory) {
+            throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)('musicCategory is required when assigning a product to a collection.'), common_1.HttpStatus.BAD_REQUEST);
         }
         if (dto.sku && dto.sku !== product.sku) {
             const skuExists = await this.productRepo.existsBy({ sku: dto.sku });
             if (skuExists) {
-                throw new common_1.ConflictException(`SKU "${dto.sku}" is already in use.`);
+                throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)(`SKU "${dto.sku}" is already in use.`), common_1.HttpStatus.BAD_REQUEST);
             }
         }
         if (dto.name && dto.name !== product.name) {
@@ -161,42 +258,60 @@ let ProductsService = class ProductsService {
         Object.assign(product, dto);
         return this.productRepo.save(product);
     }
-    async addImages(id, dto) {
-        const product = await this.findOneAdmin(id);
-        const merged = [...new Set([...product.images, ...dto.urls])];
-        if (merged.length > 10) {
-            throw new common_1.BadRequestException(`Adding these images would exceed the 10-image limit. ` +
-                `Current: ${product.images.length}, attempting to add: ${dto.urls.length}.`);
+    async addImagesToProduct(id, dto, files) {
+        try {
+            const product = await this.findOneProductByAdmin(id);
+            if (files && files.length > 0) {
+                dto.urls = await this.uploadMultipleImages(files);
+                if (!dto.urls) {
+                    throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)("Something went wrong document not uploaded. Please try again"), common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+            product.images = dto.urls;
+            const result = await this.productRepo.save(product);
+            return (0, apiResponse_1.createResponse)(true, 'Images added successfully.', result);
         }
-        product.images = merged;
-        return this.productRepo.save(product);
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
     }
     async removeImage(id, dto) {
-        const product = await this.findOneAdmin(id);
+        const product = await this.findOneProductByAdmin(id);
         const exists = product.images.includes(dto.url);
         if (!exists) {
-            throw new common_1.NotFoundException(`Image URL not found in this product's gallery.`);
+            throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)('Image URL not found in this product\'s gallery.'), common_1.HttpStatus.BAD_REQUEST);
         }
         product.images = product.images.filter((img) => img !== dto.url);
         return this.productRepo.save(product);
     }
     async toggleActive(id) {
-        const product = await this.findOneAdmin(id);
-        product.isActive = !product.isActive;
-        await this.productRepo.save(product);
-        return { isActive: product.isActive };
+        try {
+            const product = await this.findOneProductByAdmin(id);
+            product.isActive = !product.isActive;
+            await this.productRepo.save(product);
+            return (0, apiResponse_1.createResponse)(true, 'Product is now ' + (product.isActive ? 'active' : 'inactive') + '.', { isActive: product.isActive });
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
     }
     async toggleFeatured(id) {
-        const product = await this.findOneAdmin(id);
-        product.isFeatured = !product.isFeatured;
-        await this.productRepo.save(product);
-        return { isFeatured: product.isFeatured };
+        try {
+            const product = await this.findOneProductByAdmin(id);
+            product.isFeatured = !product.isFeatured;
+            await this.productRepo.save(product);
+            return (0, apiResponse_1.createResponse)(true, `Product "${product.name}" is now ${product.isFeatured ? 'featured' : 'not featured'}.`, { isFeatured: product.isFeatured });
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
     }
     async decrementStock(id, quantity) {
-        const product = await this.findOneAdmin(id);
+        const product = await this.findOneProductByAdmin(id);
         if (product.stock < quantity) {
-            throw new common_1.BadRequestException(`Insufficient stock for "${product.name}". ` +
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Insufficient stock for "${product.name}". ` +
                 `Requested: ${quantity}, available: ${product.stock}.`);
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         await this.productRepo.decrement({ id }, 'stock', quantity);
     }
@@ -204,25 +319,36 @@ let ProductsService = class ProductsService {
         await this.productRepo.increment({ id }, 'stock', quantity);
     }
     async findRelated(id, limit = 8) {
-        const product = await this.findOne(id);
-        return this.productRepo
-            .createQueryBuilder('product')
-            .where('product.category = :category', { category: product.category })
-            .andWhere('product.id != :id', { id })
-            .andWhere('product.isActive = true')
-            .orderBy('RANDOM()')
-            .take(limit)
-            .getMany();
+        try {
+            const product = await this.findOne(id);
+            const result = await this.productRepo
+                .createQueryBuilder('product')
+                .where('product.category = :category', { category: product.category })
+                .andWhere('product.id != :id', { id })
+                .andWhere('product.isActive = true')
+                .orderBy('RANDOM()')
+                .take(limit)
+                .getMany();
+            return (0, apiResponse_1.createResponse)(true, 'Related products retrieved successfully.', result);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
     }
-    async remove(id) {
-        const product = await this.findOneAdmin(id);
-        await this.productRepo.remove(product);
-        return { message: `Product "${product.name}" has been deleted.` };
+    async removeProduct(id) {
+        try {
+            const product = await this.findOneProductByAdmin(id);
+            await this.productRepo.remove(product);
+            return (0, apiResponse_1.createResponse)(true, `Product "${product.name}" has been deleted.`, true);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
     }
-    async findOneAdmin(id) {
+    async findOneProductByAdmin(id) {
         const product = await this.productRepo.findOneBy({ id });
         if (!product)
-            throw new common_1.NotFoundException(`Product #${id} not found.`);
+            throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)(`Product #${id} not found.`), common_1.HttpStatus.NOT_FOUND);
         return product;
     }
     async generateUniqueSlug(name, excludeId) {
@@ -263,11 +389,9 @@ let ProductsService = class ProductsService {
                 .getRawMany(),
             base
                 .clone()
-                .leftJoin('product.brand', 'brand')
-                .select(['brand.id AS id', 'brand.name AS name'])
-                .andWhere('brand.id IS NOT NULL')
-                .groupBy('brand.id, brand.name')
-                .orderBy('brand.name', 'ASC')
+                .select('DISTINCT product.brand', 'brand')
+                .andWhere('product.brand IS NOT NULL')
+                .orderBy('product.brand', 'ASC')
                 .getRawMany(),
             base
                 .clone()
@@ -279,34 +403,52 @@ let ProductsService = class ProductsService {
             categories: categoryRows.map((r) => r.category),
             types: typeRows.map((r) => r.type),
             genders: genderRows.map((r) => r.gender),
-            brands: brandRows.map((r) => ({ id: r.id, name: r.name })),
+            brands: brandRows.map((r) => ({ id: r.brand, name: r.brand })),
             priceRange: {
                 min: Number(priceRange?.min ?? 0),
                 max: Number(priceRange?.max ?? 0),
             },
         };
     }
+    async get_filters_for_marketplace() {
+        try {
+            const filter = await this.getFilters();
+            return (0, apiResponse_1.createResponse)(true, 'Filters retrieved successfully.', filter);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+            throw error;
+        }
+    }
     async getFeatured(limit = 8) {
-        return this.productRepo.find({
-            where: { isActive: true, isFeatured: true },
-            order: { updatedAt: 'DESC' },
-            take: limit,
-        });
+        return this.productRepo
+            .createQueryBuilder('product')
+            .where('product.isActive = true')
+            .andWhere('product.isFeatured = true')
+            .andWhere('product.stock > 0')
+            .orderBy('product.updatedAt', 'DESC')
+            .take(limit)
+            .getMany();
     }
     async getNewArrivals(limit = 12) {
-        return this.productRepo.find({
-            where: { isActive: true },
-            order: { createdAt: 'DESC' },
-            take: limit,
-        });
+        return this.productRepo
+            .createQueryBuilder('product')
+            .where('product.isActive = true')
+            .andWhere('product.stock > 0')
+            .orderBy('product.createdAt', 'DESC')
+            .take(limit)
+            .getMany();
     }
     async getOnSale(page = 1, limit = 20) {
-        const [data, total] = await this.productRepo.findAndCount({
-            where: { isActive: true, compareAtPrice: (0, typeorm_2.Not)((0, typeorm_2.IsNull)()) },
-            order: { updatedAt: 'DESC' },
-            skip: (page - 1) * limit,
-            take: limit,
-        });
+        const qb = this.productRepo
+            .createQueryBuilder('product')
+            .where('product.isActive = true')
+            .andWhere('product.stock > 0')
+            .andWhere('product.compareAtPrice IS NOT NULL')
+            .orderBy('product.updatedAt', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit);
+        const [data, total] = await qb.getManyAndCount();
         return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
 };

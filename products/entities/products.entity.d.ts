@@ -3,10 +3,13 @@ import { ProductType } from '../enum/product.types';
 import { Review } from './product.review.entity';
 import { Gender } from '../enum/gender';
 import { User } from 'src/users/entities/user.entity';
+import { Song } from 'src/artist_song/entities/songs.entity';
+import { ProductColor } from '../enum/product.color';
+import { Collection } from 'src/collection/entities/collection.entity';
+import { MusicCategory } from 'src/collection/enum/muscic.category';
 export declare class Product {
     id: string;
     category: ProductCategory;
-    categoryId: string;
     brand: string;
     brandId: string;
     name: string;
@@ -17,7 +20,10 @@ export declare class Product {
     compareAtPrice: number;
     stock: number;
     imageUrl: string;
+    advertVideoUrl: string;
+    colors: ProductColor[];
     images: string[];
+    sizes: string[];
     gender: Gender;
     type: ProductType;
     isActive: boolean;
@@ -26,6 +32,11 @@ export declare class Product {
     updatedAt: Date;
     tagName: string;
     tagSlug: string;
+    hasQrCode: boolean;
     createdBy: User;
     reviews: Review[];
+    songs: Song[];
+    collection: Collection;
+    collectionId: string;
+    musicCategory: MusicCategory;
 }

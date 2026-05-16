@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - JSYK</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #111827;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+
+        .content h2 {
+            margin-top: 0;
+        }
+
+        .order-summary {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .order-summary th,
+        .order-summary td {
+            border-bottom: 1px solid #dddddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .order-summary th {
+            background-color: #f9fafb;
+        }
+
+        .total {
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #777777;
+        }
+
+        @media only screen and (max-width: 600px) {
+
+            .content,
+            .header,
+            .footer {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>JSYK</h1>
+            <p>Thanks for your purchase!</p>
+        </div>
+
+        <div class="content">
+            <h2>Hello {{firstName}},</h2>
+            <p>Thank you for shopping with us. We're excited to let you know that your order has been received and is
+                now being processed.</p>
+
+            <h3>Order Details</h3>
+            <p><strong>Order ID:</strong> {{orderId}}</p>
+            <p><strong>Order Date:</strong> {{orderDate}}</p>
+
+            <table class="order-summary">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each products}}
+                    <tr>
+                        <td>{{this.productName}}</td>
+                        <td>{{this.qty}}</td>
+                        <td>{{this.unitPrice}}</td>
+                    </tr>
+                    {{/each}}
+                    <tr>
+                        <td colspan="2" class="total">Total</td>
+                        <td class="total">{{totalPrice}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Shipping Address</h3>
+            <p>{{shippingAddress}}</p>
+
+            <a href="{{trackingLink}}" class="button">Track Your Order</a>
+
+            <p>If you have any questions, feel free to reply to this email or contact our support team.</p>
+            <p>— The JSYK Team</p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; {{year}} JSYK. All rights reserved.</p>
+            <p>You are receiving this email because you made a purchase on our platform.</p>
+        </div>
+    </div>
+</body>
+
+</html>

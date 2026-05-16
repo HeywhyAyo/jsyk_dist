@@ -8,7 +8,6 @@ import { verifyUserDto, verifyUserDTOzod } from "./dto/verify-user.dto";
 import { loginUserDto } from "./dto/login-user.dto";
 import { ONBOARDLEVEL } from "./shared/enum/onboard";
 import { CompleteProfileDto } from "./dto/complete.profile";
-import { NodemailerService } from "src/email/nodemailer.service";
 import { ResendConfirmationDto } from "./dto/resend-confirmation.dto";
 import { MasterEmail } from "src/shared/interfaces/email";
 import { RefreshUserDto } from "./dto/refresh-token-user.dto";
@@ -16,12 +15,19 @@ import { getOTPDTO } from "./dto/get-otp.dto";
 import { ChangePasswordDTO, ResetPasswordDTO } from "./dto/reset-password.dto";
 import { EnableTwoFaDto, getOtpWithEmailDTO } from "./dto/enable-user.dto";
 import { loginUser2FaDTO } from "./dto/login-TwoFa.dto";
+import { Address } from "./entities/address.entity";
+import { CreateAddressDataVisitorDto, CreateAddressDto } from "./dto/create-address.dto";
+import { CreateAdminDto } from "src/admin/dto/create-admin.dto";
+import { WalletService } from "src/wallet/wallet.service";
+import { UpdateAddressDto } from "./dto/update.address.dto";
+import { DeleteAddressDto } from "./dto/delete.address.dto";
 export declare class UsersService {
     private userRepository;
     private jwtService;
-    private nodemailerService;
+    private addressRepository;
     private readonly emailService;
-    constructor(userRepository: Repository<User>, jwtService: JwtService, nodemailerService: NodemailerService, emailService: MasterEmail);
+    private readonly walletService;
+    constructor(userRepository: Repository<User>, jwtService: JwtService, addressRepository: Repository<Address>, emailService: MasterEmail, walletService: WalletService);
     create(createUserDto: CreateUserData, token: string, expiresIn: Date): Promise<User>;
     createVisitorAccount(createUserDto: CreateVisitorAccountDto, password: string, token: string, expiresIn: Date): Promise<User>;
     sign_in_User_service(dto: loginUserDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
@@ -139,6 +145,8 @@ export declare class UsersService {
     setEmailToken(email: string, token: string, expiry: Date): Promise<import("typeorm").UpdateResult>;
     verifyEmail(email: string): Promise<import("typeorm").UpdateResult>;
     findOneByEmail(email: string): Promise<User | null>;
+    findOneById(id: string): Promise<User | null>;
+    admin_user_details(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<User> | undefined>;
     login(id: string, email: string, role: UserRole): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -163,6 +171,8 @@ export declare class UsersService {
     register_A_Visitor_User(createUserDto: CreateVisitorAccountDto): Promise<{
         id: string;
         email: string;
+        name: string;
+        phone: string;
     } | undefined>;
     verifyUser(verifyUserDto: verifyUserDTOzod): Promise<import("../shared/interfaces/aResponse").aResponse<null> | undefined>;
     loginUser(loginDto: loginUserDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
@@ -197,6 +207,8 @@ export declare class UsersService {
     }> | undefined>;
     set_email_to_lowercase(email: string): string;
     createOauthUser(creatAuthUser: any): Promise<User[]>;
+    getUserAddresses(userId: string): Promise<Address[] | null>;
+    user_address_service(userid: string): Promise<import("../shared/interfaces/aResponse").aResponse<Address[] | null> | undefined>;
     private generateCardCode;
     private generateReferralCode;
     getReferredUsers(userId: string, page?: number, limit?: number): Promise<PaginatedResult<Partial<User>>>;
@@ -206,6 +218,14 @@ export declare class UsersService {
     private resetPasswordSender;
     private enable_disable_TwoFactorSender;
     private twofactorCodeSender;
-    private sender;
+    sender(to: string, subject: string, templateName: string, emailParameters: any): Promise<void>;
+    createVisitorsAddress(createAddressDto: CreateAddressDataVisitorDto, userId: string): Promise<Address>;
+    private createUserAddress;
+    create_address_service(createAddressDto: CreateAddressDto, userId: string): Promise<import("../shared/interfaces/aResponse").aResponse<Address> | undefined>;
+    make_system_admin(body: CreateAdminDto): Promise<void>;
+    all_users_service(page?: number, limit?: number, search?: string, startDate?: Date, endDate?: Date): Promise<import("../shared/interfaces/aResponse").aResponse<PaginatedResult<User>> | undefined>;
+    updateAddressById(id: string, updateAddressDto: any): Promise<import("typeorm").UpdateResult>;
+    update_user_Address(userid: string, addressId: string, dto: UpdateAddressDto): Promise<import("../shared/interfaces/aResponse").aResponse<null> | undefined>;
+    delete_user_Address(userid: string, dto: DeleteAddressDto): Promise<import("../shared/interfaces/aResponse").aResponse<null> | undefined>;
     private verifyToken;
 }

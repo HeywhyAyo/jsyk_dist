@@ -3,6 +3,7 @@ export declare const TEMPLATE: {
     RESET_EMAIL_NAME: string;
     TWO_FACTOR_ENABLED_NAME: string;
     TWO_FACTOR_LOGIN_NAME: string;
+    PRODUCT_PURCHASED_NAME: string;
     CONTACT_EMAIL_SUBMISSION_NAME: string;
     NEW_INVESTMENT_EMAIL_NAME: string;
     NEW_SUBSCRIPTION_EMAIL_NAME: string;

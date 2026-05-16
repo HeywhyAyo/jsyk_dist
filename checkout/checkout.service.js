@@ -31,6 +31,7 @@ const products_service_1 = require("../products/products.service");
 const standard_charge_1 = require("../shared/constant/standard.charge");
 const rethrow_exception_1 = require("../shared/utilities/rethrow-exception");
 const apiResponse_1 = require("../shared/utilities/apiResponse");
+const stripe_1 = require("stripe");
 let CheckoutService = CheckoutService_1 = class CheckoutService {
     orderRepo;
     orderItemRepo;
@@ -40,6 +41,9 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
     productService;
     userService;
     logger = new common_1.Logger(CheckoutService_1.name);
+    STRIPE_API_KEY = process.env.STRIPE_API_KEY;
+    STRIPE_SUCCESS_URL = process.env.SUCCESS_URL || "https://www.jsyk.com/success_checkout";
+    STRIPE_CANCEL_URL = process.env.CANCEL_URL || "https://www.jsyk.com/cancel_checkout";
     constructor(orderRepo, orderItemRepo, paymentRepo, addressRepo, couponRepo, productService, userService) {
         this.orderRepo = orderRepo;
         this.orderItemRepo = orderItemRepo;
@@ -75,6 +79,22 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                         `Requested: ${item.quantity}, Available: ${product.stock}.`);
                     throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
                 }
+                let selectedColor = null;
+                const hasColorOptions = product.colors && product.colors.length > 0;
+                if (hasColorOptions) {
+                    if (!item.selectedColor) {
+                        const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Please select a color for "${product.name}".`);
+                        throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+                    }
+                    const matchedColor = product.colors.find((c) => c.hexCode.toLowerCase() ===
+                        item.selectedColor?.toLowerCase());
+                    if (!matchedColor) {
+                        const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`"${item.selectedColor}" is not a valid color option for "${product.name}". ` +
+                            `Available colors: ${product.colors.map((c) => `${c.name} (${c.hexCode})`).join(', ')}.`);
+                        throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+                    }
+                    selectedColor = `${matchedColor.name} (${matchedColor.hexCode})`;
+                }
                 resolvedItems.push({
                     productId: product.id,
                     productName: product.name,
@@ -83,6 +103,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                     quantity: item.quantity,
                     unitPrice: Number(product.price),
                     totalPrice: Number(product.price) * item.quantity,
+                    selectedColor,
                 });
             }
             const subtotal = resolvedItems.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -123,6 +144,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 totalPrice: item.totalPrice,
+                selectedColor: item.selectedColor || undefined,
             }));
             await this.orderItemRepo.save(orderItems);
             if (coupon) {
@@ -139,17 +161,10 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 transactionId: reference,
             });
             await this.paymentRepo.save(payment);
-            const paystackData = await this.initializePaystackTransaction({
-                email: user.email,
-                amount: total,
-                reference,
-                userId: user.id,
-                orderId: savedOrder.id,
-                orderNumber,
-            });
+            const stripeSession = await this.stripe_checkout(user.email, total, reference, user.id, savedOrder.id, orderNumber);
             this.logger.log(`Checkout complete | Order: ${orderNumber} | User: ${user.id} | Total: ₦${total}`);
             return (0, apiResponse_1.createResponse)(true, "Checkout initialized successfully.", {
-                paymentUrl: paystackData.authorization_url,
+                paymentUrl: stripeSession.url,
                 reference,
                 orderNumber,
                 breakdown: { subtotal, discount, shippingFee, tax, total },
@@ -159,6 +174,36 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
             (0, rethrow_exception_1.rethrowIfHttpException)(error);
         }
     }
+    async stripe_checkout(email, amount, reference, userId, orderId, orderNumber) {
+        if (!this.STRIPE_API_KEY) {
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('Payment Key is not configured');
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+        }
+        const stripe = new stripe_1.default(this.STRIPE_API_KEY);
+        const session = await stripe.checkout.sessions.create({
+            success_url: this.STRIPE_SUCCESS_URL + `?orderNumber=${orderNumber}`,
+            cancel_url: this.STRIPE_CANCEL_URL,
+            customer_email: email,
+            line_items: [
+                {
+                    price_data: {
+                        unit_amount: amount,
+                        currency: "ngn",
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: "payment",
+            metadata: {
+                userId: userId,
+                reference: reference,
+                orderId: orderId,
+                orderNumber: orderNumber,
+                amount: amount,
+            },
+        });
+        return session;
+    }
     async visitor_checkout(dto) {
         try {
             const user = await this.userService.register_A_Visitor_User(dto);
@@ -166,10 +211,18 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('Unable to create account for checkout');
                 throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
             }
-            const address = await this.addressRepo.findOne({
-                where: { id: dto.shippingAddressId, userId: user.id },
-            });
-            if (!address) {
+            const addressData = {
+                fullName: user.name,
+                phone: user.phone,
+                street: dto.street || "N/A",
+                city: dto.city || "N/A",
+                state: dto.state || "N/A",
+                country: dto.country || "N/A",
+                postalCode: dto.postalCode || "N/A",
+                isDefault: true
+            };
+            const createdAndDefaultAddress = await this.userService.createVisitorsAddress(addressData, user.id);
+            if (!createdAndDefaultAddress) {
                 const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('Shipping address not found or does not belong to you.');
                 throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
             }
@@ -185,6 +238,23 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                         `Requested: ${item.quantity}, Available: ${product.stock}.`);
                     throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
                 }
+                ;
+                let selectedColor = null;
+                const hasColorOptions = product.colors && product.colors.length > 0;
+                if (hasColorOptions) {
+                    if (!item.selectedColor) {
+                        const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Please select a color for "${product.name}".`);
+                        throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+                    }
+                    const matchedColor = product.colors.find((c) => c.hexCode.toLowerCase() ===
+                        item.selectedColor?.toLowerCase());
+                    if (!matchedColor) {
+                        const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`"${item.selectedColor}" is not a valid color option for "${product.name}". ` +
+                            `Available colors: ${product.colors.map((c) => `${c.name} (${c.hexCode})`).join(', ')}.`);
+                        throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
+                    }
+                    selectedColor = `${matchedColor.name} (${matchedColor.hexCode})`;
+                }
                 resolvedItems.push({
                     productId: product.id,
                     productName: product.name,
@@ -193,6 +263,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                     quantity: item.quantity,
                     unitPrice: Number(product.price),
                     totalPrice: Number(product.price) * item.quantity,
+                    selectedColor
                 });
             }
             const subtotal = resolvedItems.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -211,7 +282,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
             const orderNumber = this.generateOrderNumber();
             const order = this.orderRepo.create({
                 userId: user.id,
-                shippingAddressId: address.id,
+                shippingAddressId: createdAndDefaultAddress.id,
                 couponId: coupon?.id,
                 orderNumber,
                 status: order_status_1.OrderStatus.PENDING,
@@ -233,6 +304,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 totalPrice: item.totalPrice,
+                selectedColor: item.selectedColor || undefined,
             }));
             await this.orderItemRepo.save(orderItems);
             if (coupon) {
@@ -249,17 +321,10 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 transactionId: reference,
             });
             await this.paymentRepo.save(payment);
-            const paystackData = await this.initializePaystackTransaction({
-                email: user.email,
-                amount: total,
-                reference,
-                userId: user.id,
-                orderId: savedOrder.id,
-                orderNumber,
-            });
+            const stripeSession = await this.stripe_checkout(user.email, total, reference, user.id, savedOrder.id, orderNumber);
             this.logger.log(`Checkout complete | Order: ${orderNumber} | User: ${user.id} | Total: ₦${total}`);
             return (0, apiResponse_1.createResponse)(true, "Checkout initialized successfully.", {
-                paymentUrl: paystackData.authorization_url,
+                paymentUrl: stripeSession.url,
                 reference,
                 orderNumber,
                 breakdown: { subtotal, discount, shippingFee, tax, total },
@@ -311,27 +376,33 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
     async validateCoupon(code, userId, subtotal) {
         const coupon = await this.couponRepo.findOne({ where: { code } });
         if (!coupon || !coupon.isActive) {
-            throw new common_1.BadRequestException('Invalid or inactive coupon code.');
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('Invalid or inactive coupon code.');
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         const now = new Date();
         if (coupon.startsAt && coupon.startsAt > now) {
-            throw new common_1.BadRequestException('This coupon is not active yet.');
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('This coupon is not active yet.');
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         if (coupon.expiresAt && coupon.expiresAt < now) {
-            throw new common_1.BadRequestException('This coupon has expired.');
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('This coupon has expired.');
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
-            throw new common_1.BadRequestException('This coupon has reached its usage limit.');
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('This coupon has reached its usage limit.');
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         if (subtotal < Number(coupon.minOrderAmount)) {
-            throw new common_1.BadRequestException(`Minimum order amount for this coupon is ₦${coupon.minOrderAmount}.`);
+            const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)(`Minimum order amount for this coupon is ₦${coupon.minOrderAmount}.`);
+            throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
         }
         if (coupon.perUserLimit !== null) {
             const userUsageCount = await this.orderRepo.count({
                 where: { userId, couponId: coupon.id },
             });
             if (userUsageCount >= coupon.perUserLimit) {
-                throw new common_1.BadRequestException('You have already used this coupon the maximum number of times.');
+                const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)('You have already used this coupon the maximum number of times.');
+                throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
             }
         }
         return coupon;

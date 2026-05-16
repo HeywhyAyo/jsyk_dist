@@ -30,6 +30,17 @@ const wallet_entity_1 = require("./wallet/entities/wallet.entity");
 const transaction_entity_1 = require("./transactions/entities/transaction.entity");
 const webhooks_module_1 = require("./webhooks/webhooks.module");
 const checkout_module_1 = require("./checkout/checkout.module");
+const artist_song_module_1 = require("./artist_song/artist_song.module");
+const artist_entity_1 = require("./artist_song/entities/artist.entity");
+const songs_entity_1 = require("./artist_song/entities/songs.entity");
+const wallet_module_1 = require("./wallet/wallet.module");
+const collection_module_1 = require("./collection/collection.module");
+const collection_entity_1 = require("./collection/entities/collection.entity");
+const stripe_module_1 = require("./stripe/stripe.module");
+const analytics_module_1 = require("./analytics/analytics.module");
+const draw_module_1 = require("./draw/draw.module");
+const draw_participant_entity_1 = require("./draw/entities/draw.participant.entity");
+const draw_entity_1 = require("./draw/entities/draw.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -39,7 +50,8 @@ exports.AppModule = AppModule = __decorate([
                 type: "postgres",
                 url: process.env.DATABASE_URL,
                 entities: [
-                    user_entity_1.User, orders_entity_1.Order, order_item_entity_1.OrderItem, products_entity_1.Product, payment_entity_1.Payment, coupon_entity_1.Coupon, product_review_entity_1.Review, shipment_entity_1.Shipment, address_entity_1.Address, wallet_entity_1.Wallet, transaction_entity_1.Transaction
+                    user_entity_1.User, orders_entity_1.Order, order_item_entity_1.OrderItem, products_entity_1.Product, payment_entity_1.Payment, coupon_entity_1.Coupon, product_review_entity_1.Review, shipment_entity_1.Shipment, address_entity_1.Address, wallet_entity_1.Wallet, transaction_entity_1.Transaction, artist_entity_1.Artist, songs_entity_1.Song, collection_entity_1.Collection,
+                    draw_participant_entity_1.DrawParticipant, draw_entity_1.Draw
                 ],
                 synchronize: true,
             }),
@@ -50,7 +62,13 @@ exports.AppModule = AppModule = __decorate([
             payments_module_1.PaymentsModule,
             shipments_module_1.ShipmentsModule,
             webhooks_module_1.WebhooksModule,
-            checkout_module_1.CheckoutModule
+            checkout_module_1.CheckoutModule,
+            artist_song_module_1.ArtistSongModule,
+            wallet_module_1.WalletModule,
+            collection_module_1.CollectionModule,
+            stripe_module_1.StripeModule,
+            analytics_module_1.AnalyticsModule,
+            draw_module_1.DrawModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

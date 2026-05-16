@@ -16,16 +16,19 @@ const typeorm_1 = require("@nestjs/typeorm");
 const users_service_1 = require("../users/users.service");
 const transaction_entity_1 = require("./entities/transaction.entity");
 const email_module_1 = require("../email/email.module");
+const address_entity_1 = require("../users/entities/address.entity");
+const wallet_module_1 = require("../wallet/wallet.module");
 let TransactionsModule = class TransactionsModule {
 };
 exports.TransactionsModule = TransactionsModule;
 exports.TransactionsModule = TransactionsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, address_entity_1.Address]),
             typeorm_1.TypeOrmModule.forFeature([transaction_entity_1.Transaction]),
             auth_module_1.AuthModule,
-            email_module_1.EmailModule
+            email_module_1.EmailModule,
+            (0, common_1.forwardRef)(() => wallet_module_1.WalletModule)
         ],
         controllers: [transactions_controller_1.TransactionsController],
         providers: [transactions_service_1.TransactionsService, users_service_1.UsersService,],

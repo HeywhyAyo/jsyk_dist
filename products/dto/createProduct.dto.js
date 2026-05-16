@@ -9,15 +9,40 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.QueryProductDto = exports.RemoveProductImageDto = exports.AddProductImagesDto = exports.UpdateProductDto = exports.CreateProductDto = void 0;
+exports.CreateProductUploadDto = exports.QueryProductDto = exports.RemoveProductImageDto = exports.AddProductImagesDto = exports.UpdateProductDto = exports.CreateProductDataDto = exports.CreateProductDto = exports.ProductColorDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
 const product_category_1 = require("../enum/product.category");
 const product_types_1 = require("../enum/product.types");
 const gender_1 = require("../enum/gender");
+const muscic_category_1 = require("../../collection/enum/muscic.category");
+const common_1 = require("@nestjs/common");
+class ProductColorDto {
+    name;
+    hexCode;
+}
+exports.ProductColorDto = ProductColorDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Display name shown to the user next to the swatch',
+        example: 'Midnight Black',
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(50),
+    __metadata("design:type", String)
+], ProductColorDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Valid CSS hex color code used to render the swatch circle',
+        example: '#1A1A1A',
+    }),
+    (0, class_validator_1.IsHexColor)(),
+    __metadata("design:type", String)
+], ProductColorDto.prototype, "hexCode", void 0);
 class CreateProductDto {
     name;
+    sizes;
     description;
     category;
     type;
@@ -27,10 +52,12 @@ class CreateProductDto {
     price;
     compareAtPrice;
     stock;
-    images;
+    colors;
     tagName;
     tagSlug;
     isFeatured;
+    collectionId;
+    musicCategory;
 }
 exports.CreateProductDto = CreateProductDto;
 __decorate([
@@ -44,6 +71,21 @@ __decorate([
     (0, class_validator_1.MaxLength)(200),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Available size options for this product',
+        example: ['XS', 'S', 'M', 'L', 'XL'],
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value === 'string') {
+            return value.split(',').map(v => v.trim());
+        }
+        return value;
+    }),
+    __metadata("design:type", Array)
+], CreateProductDto.prototype, "sizes", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Full product description',
@@ -138,19 +180,37 @@ __decorate([
 ], CreateProductDto.prototype, "stock", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
-        description: 'Additional gallery image URLs (max 10)',
+        type: [ProductColorDto],
+        description: 'Available color options for this product. ' +
+            'Leave empty or omit if the product has no color variants. ' +
+            'Each color needs a display name and a CSS hex code for the swatch.',
         example: [
-            'https://cdn.jsyk.com/products/af1-side.jpg',
-            'https://cdn.jsyk.com/products/af1-back.jpg',
+            { name: 'Midnight Black', hexCode: '#1A1A1A' },
+            { name: 'Chalk White', hexCode: '#F5F5F5' },
+            { name: 'Forest Green', hexCode: '#2D6A4F' },
         ],
-        type: [String],
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.ArrayMaxSize)(10),
-    (0, class_validator_1.IsUrl)({}, { each: true }),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => ProductColorDto),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (!value)
+            return undefined;
+        if (Array.isArray(value))
+            return value;
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            }
+            catch {
+                return undefined;
+            }
+        }
+        return value;
+    }),
     __metadata("design:type", Array)
-], CreateProductDto.prototype, "images", void 0);
+], CreateProductDto.prototype, "colors", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Tag label for grouping (e.g. "New Arrival", "Sale")',
@@ -184,8 +244,34 @@ __decorate([
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (value === 'true' || value === true)
+            return true;
+        if (value === 'false' || value === false)
+            return false;
+        return value;
+    }),
     __metadata("design:type", Boolean)
 ], CreateProductDto.prototype, "isFeatured", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'ID of the Collection to update (required for admin updates)',
+        example: 'UUID',
+    }),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "collectionId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'music category to update (required for admin updates)',
+        enum: muscic_category_1.MusicCategory,
+        example: muscic_category_1.MusicCategory.HIP_HOP,
+    }),
+    (0, class_validator_1.IsEnum)(muscic_category_1.MusicCategory),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "musicCategory", void 0);
+class CreateProductDataDto extends CreateProductDto {
+}
+exports.CreateProductDataDto = CreateProductDataDto;
 class UpdateProductDto extends (0, swagger_1.PartialType)(CreateProductDto) {
     isActive;
     product_id;
@@ -211,20 +297,6 @@ class AddProductImagesDto {
     urls;
 }
 exports.AddProductImagesDto = AddProductImagesDto;
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        description: 'Image URLs to append to the product gallery (max 10)',
-        example: [
-            'https://cdn.jsyk.com/products/af1-side.jpg',
-            'https://cdn.jsyk.com/products/af1-back.jpg',
-        ],
-        type: [String],
-    }),
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.ArrayMaxSize)(10),
-    (0, class_validator_1.IsUrl)({}, { each: true }),
-    __metadata("design:type", Array)
-], AddProductImagesDto.prototype, "urls", void 0);
 class RemoveProductImageDto {
     url;
 }
@@ -402,4 +474,26 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], QueryProductDto.prototype, "limit", void 0);
+class CreateProductUploadDto {
+    productId;
+    videolink;
+}
+exports.CreateProductUploadDto = CreateProductUploadDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Unique stock keeping unit identifier',
+        example: 'UUID',
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateProductUploadDto.prototype, "productId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'URL of the video if it is already hosted somewhere',
+        example: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    }),
+    (0, common_1.Optional)(),
+    __metadata("design:type", String)
+], CreateProductUploadDto.prototype, "videolink", void 0);
 //# sourceMappingURL=createProduct.dto.js.map

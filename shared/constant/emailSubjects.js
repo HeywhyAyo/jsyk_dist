@@ -13,6 +13,7 @@ exports.SUBJECTS = {
     NEW_REVIEW: "Investor Application Submitted",
     INVESTMENT_DELETED_EMAIL: "Investment Removed From Your Portfolio",
     REVIEW_ACCEPTED: "Your Application Has Been Approved – Welcome Aboard!",
-    REVIEW_REJECTED: "Your Application Was Not Approved"
+    REVIEW_REJECTED: "Your Application Was Not Approved",
+    PRODUCT_PURCHASED: "Your Product Purchase is Confirmed"
 };
 //# sourceMappingURL=emailSubjects.js.map

@@ -14,6 +14,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const payment_entity_1 = require("../payments/entities/payment.entity");
 const orders_entity_1 = require("../orders/entities/orders.entity");
 const products_module_1 = require("../products/products.module");
+const users_module_1 = require("../users/users.module");
 let WebhooksModule = class WebhooksModule {
 };
 exports.WebhooksModule = WebhooksModule;
@@ -22,6 +23,7 @@ exports.WebhooksModule = WebhooksModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([payment_entity_1.Payment, orders_entity_1.Order]),
             products_module_1.ProductsModule,
+            users_module_1.UsersModule
         ],
         controllers: [webhooks_controller_1.WebhooksController],
         providers: [webhooks_service_1.WebhooksService],

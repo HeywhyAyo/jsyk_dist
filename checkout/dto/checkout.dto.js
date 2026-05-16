@@ -17,6 +17,7 @@ const shipment_methods_1 = require("../../orders/enum/shipment.methods");
 class CheckoutItemDto {
     productId;
     quantity;
+    selectedColor;
 }
 exports.CheckoutItemDto = CheckoutItemDto;
 __decorate([
@@ -38,6 +39,17 @@ __decorate([
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CheckoutItemDto.prototype, "quantity", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'The color the customer selected before adding to cart. ' +
+            'Must be a valid hex code matching one of the product\'s available colors. ' +
+            'Omit if the product has no color options.',
+        example: '#1A1A1A',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsHexColor)(),
+    __metadata("design:type", String)
+], CheckoutItemDto.prototype, "selectedColor", void 0);
 class CheckoutDto {
     items;
     shippingAddressId;
@@ -51,8 +63,16 @@ __decorate([
         description: 'List of products and quantities the customer is purchasing',
         type: [CheckoutItemDto],
         example: [
-            { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2 },
-            { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1 },
+            {
+                productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789',
+                quantity: 2,
+                selectedColor: '#1A1A1A',
+            },
+            {
+                productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901',
+                quantity: 1,
+                selectedColor: '#F5F5F5',
+            },
         ],
     }),
     (0, class_validator_1.IsArray)(),
@@ -95,10 +115,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CheckoutDto.prototype, "notes", void 0);
-class VisitorCheckoutDto extends CheckoutDto {
+class VisitorCheckoutDto {
     email;
-    firstName;
-    lastName;
+    items;
+    shippingMethod;
+    couponCode;
+    notes;
+    phone;
+    street;
+    city;
+    state;
+    country;
+    postalCode;
 }
 exports.VisitorCheckoutDto = VisitorCheckoutDto;
 __decorate([
@@ -111,23 +139,114 @@ __decorate([
     __metadata("design:type", String)
 ], VisitorCheckoutDto.prototype, "email", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'First name of the guest customer',
-        example: 'John',
+    (0, swagger_1.ApiProperty)({
+        description: 'List of products and quantities the customer is purchasing',
+        type: [CheckoutItemDto],
+        example: [
+            {
+                productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789',
+                quantity: 2,
+                selectedColor: '#1A1A1A',
+            },
+            {
+                productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901',
+                quantity: 1,
+                selectedColor: '#F5F5F5',
+            },
+        ],
     }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => CheckoutItemDto),
+    __metadata("design:type", Array)
+], VisitorCheckoutDto.prototype, "items", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Delivery method chosen by the customer',
+        enum: shipment_methods_1.ShippingMethod,
+        example: shipment_methods_1.ShippingMethod.EXPRESS,
+    }),
+    (0, class_validator_1.IsEnum)(shipment_methods_1.ShippingMethod),
     __metadata("design:type", String)
-], VisitorCheckoutDto.prototype, "firstName", void 0);
+], VisitorCheckoutDto.prototype, "shippingMethod", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
-        description: 'Last name of the guest customer',
-        example: 'Doe',
+        description: 'Coupon code to apply a discount to the order',
+        example: 'SAVE20',
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], VisitorCheckoutDto.prototype, "lastName", void 0);
+], VisitorCheckoutDto.prototype, "couponCode", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Optional delivery instructions or notes for the order',
+        example: 'Please leave at the front door.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "notes", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Phone number',
+        type: String,
+        example: '+1-800-123-4567',
+    }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Street address',
+        type: String,
+        example: '123 Main Street',
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(1, 255),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "street", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'City name',
+        type: String,
+        example: 'New York',
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(1, 100),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "city", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'State or province',
+        type: String,
+        example: 'NY',
+    }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "state", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Country name',
+        type: String,
+        example: 'United States',
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(1, 100),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "country", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Postal or ZIP code',
+        type: String,
+        minLength: 1,
+        maxLength: 20,
+        example: '10001',
+    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(1, 20),
+    __metadata("design:type", String)
+], VisitorCheckoutDto.prototype, "postalCode", void 0);
 class CheckoutBreakdownDto {
     subtotal;
     discount;
