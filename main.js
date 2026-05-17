@@ -4,6 +4,7 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const seedSuperAdmin_1 = require("./users/shared/utilities/seedSuperAdmin");
 const users_service_1 = require("./users/users.service");
+const cors = require("cors");
 const basicAuth = require("express-basic-auth");
 const express_rate_limit_1 = require("express-rate-limit");
 const swagger_1 = require("@nestjs/swagger");
@@ -13,8 +14,10 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const userService = app.get(users_service_1.UsersService);
     const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:4200',
+        'jsykwears.com',
+        'www.jsykwears.com',
+        'Jysk - demo.netlify.com',
+        'http://localhost:3039',
     ];
     app.use((0, express_rate_limit_1.default)({
         windowMs: 15 * 60 * 1000,
@@ -22,6 +25,17 @@ async function bootstrap() {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many requests from this IP, please try again after 15 minutes',
+    }));
+    app.use(cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            }
+            else {
+                callback(new Error('Not allowed by JSYK CORS'));
+            }
+        },
+        credentials: true,
     }));
     app.useGlobalPipes(new common_1.ValidationPipe({
         transform: true,
