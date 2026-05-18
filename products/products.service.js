@@ -258,6 +258,15 @@ let ProductsService = class ProductsService {
         Object.assign(product, dto);
         return this.productRepo.save(product);
     }
+    async update_product(id, dto) {
+        try {
+            const updatedProduct = await this.update(id, dto);
+            return (0, apiResponse_1.createResponse)(true, 'Product updated successfully.', updatedProduct);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     async addImagesToProduct(id, dto, files) {
         try {
             const product = await this.findOneProductByAdmin(id);

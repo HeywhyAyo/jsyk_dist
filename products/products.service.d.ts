@@ -31,6 +31,7 @@ export declare class ProductsService {
     findBySlug(slug: string): Promise<Product>;
     find_One_product_by_slug(slug: string): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
     update(id: string, dto: UpdateProductDto): Promise<Product>;
+    update_product(id: string, dto: UpdateProductDto): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
     addImagesToProduct(id: string, dto: AddProductImagesDto, files?: Express.Multer.File[]): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
     removeImage(id: string, dto: RemoveProductImageDto): Promise<Product>;
     toggleActive(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<{

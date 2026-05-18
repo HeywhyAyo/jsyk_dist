@@ -29,7 +29,7 @@ export declare class AdminController {
     createProduct_uploadFiles(dto: CreateProductUploadDto, files: {
         image?: Express.Multer.File[];
     }): Promise<import("../shared/interfaces/aResponse").aResponse<string> | undefined>;
-    updateProduct(dto: UpdateProductDto): Promise<import("../products/entities/products.entity").Product>;
+    updateProduct(productId: string, dto: UpdateProductDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../products/entities/products.entity").Product> | undefined>;
     MakeAdmin(createAdminDto: CreateAdminDto): Promise<void>;
     findAllUsers(page?: number, limit?: number, search?: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("../shared/interfaces/pagination").PaginatedResult<import("../users/entities/user.entity").User>> | undefined>;
     getUserDetails(id: string, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<import("../users/entities/user.entity").User> | undefined>;

@@ -274,7 +274,6 @@ class CreateProductDataDto extends CreateProductDto {
 exports.CreateProductDataDto = CreateProductDataDto;
 class UpdateProductDto extends (0, swagger_1.PartialType)(CreateProductDto) {
     isActive;
-    product_id;
     advertVideoUrl;
 }
 exports.UpdateProductDto = UpdateProductDto;
@@ -287,13 +286,6 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateProductDto.prototype, "isActive", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        description: 'ID of the product to update (required for admin updates)',
-        example: 'UUID',
-    }),
-    __metadata("design:type", String)
-], UpdateProductDto.prototype, "product_id", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'URL of the video if it is already hosted somewhere',

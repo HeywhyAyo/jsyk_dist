@@ -63,8 +63,8 @@ let AdminController = class AdminController {
     async createProduct_uploadFiles(dto, files) {
         return await this.productService.create_product_upload_async(dto.productId, files.image?.[0], dto.videolink);
     }
-    async updateProduct(dto) {
-        return await this.productService.update(dto.product_id, dto);
+    async updateProduct(productId, dto) {
+        return await this.productService.update_product(productId, dto);
     }
     async MakeAdmin(createAdminDto) {
         return await this.userService.make_system_admin(createAdminDto);
@@ -381,14 +381,16 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "createProduct_uploadFiles", null);
 __decorate([
-    (0, common_1.Post)('update-product-via-id'),
+    (0, common_1.Post)('update-product-via-id/:productId'),
     (0, swagger_1.ApiOperation)({ summary: 'Update a product' }),
+    (0, swagger_1.ApiParam)({ name: 'productId', description: 'Product UUID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Product updated.' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Product not found.' }),
     (0, swagger_1.ApiResponse)({ status: 409, description: 'SKU conflict.' }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Param)('productId', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [createProduct_dto_1.UpdateProductDto]),
+    __metadata("design:paramtypes", [String, createProduct_dto_1.UpdateProductDto]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "updateProduct", null);
 __decorate([
