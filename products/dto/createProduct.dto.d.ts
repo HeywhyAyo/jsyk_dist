@@ -31,6 +31,7 @@ declare const UpdateProductDto_base: import("@nestjs/common").Type<Partial<Creat
 export declare class UpdateProductDto extends UpdateProductDto_base {
     isActive?: boolean;
     product_id: string;
+    advertVideoUrl: string;
 }
 export declare class AddProductImagesDto {
     urls?: string[] | null | undefined;

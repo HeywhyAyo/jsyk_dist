@@ -275,6 +275,7 @@ exports.CreateProductDataDto = CreateProductDataDto;
 class UpdateProductDto extends (0, swagger_1.PartialType)(CreateProductDto) {
     isActive;
     product_id;
+    advertVideoUrl;
 }
 exports.UpdateProductDto = UpdateProductDto;
 __decorate([
@@ -293,6 +294,14 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], UpdateProductDto.prototype, "product_id", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'URL of the video if it is already hosted somewhere',
+        example: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    }),
+    (0, common_1.Optional)(),
+    __metadata("design:type", String)
+], UpdateProductDto.prototype, "advertVideoUrl", void 0);
 class AddProductImagesDto {
     urls;
 }

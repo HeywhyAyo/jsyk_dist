@@ -338,7 +338,7 @@ __decorate([
                     format: 'binary',
                     description: 'Optional image file — jpg, jpeg, png or webp',
                 },
-                video: {
+                videolink: {
                     type: "string",
                     description: "Optional video URL if the video is already hosted somewhere. If both video file and videolink are provided, the uploaded video file will take precedence and the videolink will be ignored.",
                     example: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
