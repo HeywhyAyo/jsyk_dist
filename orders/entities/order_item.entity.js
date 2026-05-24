@@ -23,6 +23,7 @@ let OrderItem = class OrderItem {
     sku;
     imageUrl;
     selectedColor;
+    selectedSize;
     quantity;
     unitPrice;
     totalPrice;
@@ -73,6 +74,10 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], OrderItem.prototype, "selectedColor", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], OrderItem.prototype, "selectedSize", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'int' }),
     __metadata("design:type", Number)

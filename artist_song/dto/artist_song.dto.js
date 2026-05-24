@@ -93,6 +93,9 @@ class UpdateArtistDto {
     imageUrl;
     isActive;
     isVerified;
+    facebook;
+    instagram;
+    twitter;
 }
 exports.UpdateArtistDto = UpdateArtistDto;
 __decorate([
@@ -130,6 +133,24 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateArtistDto.prototype, "isVerified", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'https://www.facebook.com/burnaboy', description: 'Artist Facebook profile URL' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], UpdateArtistDto.prototype, "facebook", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'https://www.instagram.com/burnaboy', description: 'Artist Instagram profile URL' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], UpdateArtistDto.prototype, "instagram", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'https://twitter.com/burnaboy', description: 'Artist Twitter profile URL' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)(),
+    __metadata("design:type", String)
+], UpdateArtistDto.prototype, "twitter", void 0);
 class CreateSongDto {
     artistId;
     title;

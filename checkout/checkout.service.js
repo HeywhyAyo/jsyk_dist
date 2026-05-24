@@ -80,6 +80,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                     throw new common_1.HttpException(apiResponse, common_1.HttpStatus.BAD_REQUEST);
                 }
                 let selectedColor = null;
+                let selectedSize = null;
                 const hasColorOptions = product.colors && product.colors.length > 0;
                 if (hasColorOptions) {
                     if (!item.selectedColor) {
@@ -104,6 +105,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                     unitPrice: Number(product.price),
                     totalPrice: Number(product.price) * item.quantity,
                     selectedColor,
+                    selectedSize
                 });
             }
             const subtotal = resolvedItems.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -145,6 +147,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 unitPrice: item.unitPrice,
                 totalPrice: item.totalPrice,
                 selectedColor: item.selectedColor || undefined,
+                selectedSize: item.selectedSize || undefined,
             }));
             await this.orderItemRepo.save(orderItems);
             if (coupon) {
@@ -240,6 +243,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 }
                 ;
                 let selectedColor = null;
+                let selectedSize = null;
                 const hasColorOptions = product.colors && product.colors.length > 0;
                 if (hasColorOptions) {
                     if (!item.selectedColor) {
@@ -263,7 +267,8 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                     quantity: item.quantity,
                     unitPrice: Number(product.price),
                     totalPrice: Number(product.price) * item.quantity,
-                    selectedColor
+                    selectedColor,
+                    selectedSize
                 });
             }
             const subtotal = resolvedItems.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -305,6 +310,7 @@ let CheckoutService = CheckoutService_1 = class CheckoutService {
                 unitPrice: item.unitPrice,
                 totalPrice: item.totalPrice,
                 selectedColor: item.selectedColor || undefined,
+                selectedSize: item.selectedSize || undefined,
             }));
             await this.orderItemRepo.save(orderItems);
             if (coupon) {

@@ -10,6 +10,7 @@ export declare class OrderItem {
     sku: string;
     imageUrl: string;
     selectedColor: string;
+    selectedSize: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;

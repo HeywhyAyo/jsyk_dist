@@ -3,6 +3,7 @@ export declare class CheckoutItemDto {
     productId: string;
     quantity: number;
     selectedColor?: string;
+    selectedSize?: string;
 }
 export declare class CheckoutDto {
     items: CheckoutItemDto[];

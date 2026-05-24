@@ -18,6 +18,7 @@ class CheckoutItemDto {
     productId;
     quantity;
     selectedColor;
+    selectedSize;
 }
 exports.CheckoutItemDto = CheckoutItemDto;
 __decorate([
@@ -50,6 +51,14 @@ __decorate([
     (0, class_validator_1.IsHexColor)(),
     __metadata("design:type", String)
 ], CheckoutItemDto.prototype, "selectedColor", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'The size of the product selected',
+        example: 'XL',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CheckoutItemDto.prototype, "selectedSize", void 0);
 class CheckoutDto {
     items;
     shippingAddressId;

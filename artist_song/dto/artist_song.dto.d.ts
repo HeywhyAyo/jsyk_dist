@@ -17,6 +17,9 @@ export declare class UpdateArtistDto {
     imageUrl?: string;
     isActive?: boolean;
     isVerified?: boolean;
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
 }
 export declare class CreateSongDto {
     artistId: string;
