@@ -37,6 +37,9 @@ let DrawController = class DrawController {
     checkProductOngoingDraws(productId) {
         return this.drawService.checkProductOngoingDraws(productId);
     }
+    checkIfJoined(drawId, req) {
+        return this.drawService.checkIfUserJoined(drawId, req.user.id);
+    }
 };
 exports.DrawController = DrawController;
 __decorate([
@@ -160,6 +163,19 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], DrawController.prototype, "checkProductOngoingDraws", null);
+__decorate([
+    (0, common_1.Get)(':drawId/hasJoined'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Check if user has joined the draw already',
+        description: 'Returns hasJoined to true value if this user has already join the draw.',
+    }),
+    (0, swagger_1.ApiParam)({ name: 'drawId', description: 'UUID of the draw' }),
+    __param(0, (0, common_1.Param)('drawId', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], DrawController.prototype, "checkIfJoined", null);
 exports.DrawController = DrawController = __decorate([
     (0, swagger_1.ApiTags)('Draws'),
     (0, swagger_1.ApiBearerAuth)(),

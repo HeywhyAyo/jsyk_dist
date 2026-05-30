@@ -36,6 +36,7 @@ const order_status_1 = require("../orders/enum/order.status");
 const orders_dto_1 = require("../orders/dto/orders.dto");
 const draw_service_1 = require("../draw/draw.service");
 const draw_dto_1 = require("../draw/dto/draw.dto");
+const draw_entity_1 = require("../draw/entities/draw.entity");
 let AdminController = class AdminController {
     adminService;
     productService;
@@ -129,7 +130,7 @@ let AdminController = class AdminController {
     getStats() {
         return this.orderService.getOrderStats();
     }
-    findAll(query) {
+    findAllOrders(query) {
         return this.orderService.findAllOrders(query);
     }
     updateStatus(id, status) {
@@ -152,6 +153,9 @@ let AdminController = class AdminController {
     }
     conduct(id) {
         return this.drawService.conductDrawAndNotify(id);
+    }
+    findAllDraws(status, page, limit) {
+        return this.drawService.findAllDraws(status, page, limit);
     }
 };
 exports.AdminController = AdminController;
@@ -753,7 +757,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [orders_dto_1.QueryOrderDto]),
     __metadata("design:returntype", void 0)
-], AdminController.prototype, "findAll", null);
+], AdminController.prototype, "findAllOrders", null);
 __decorate([
     (0, common_1.Post)('orders/:id/status'),
     (0, swagger_1.ApiOperation)({
@@ -878,6 +882,79 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "conduct", null);
+__decorate([
+    (0, common_1.Get)('all-draws'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'List all draws with status and participant counts',
+        description: 'Returns all draws across all products. ' +
+            'Filter by status to view only OPEN, CLOSED or COMPLETED draws.',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'status',
+        required: false,
+        enum: draw_entity_1.DrawStatus,
+        description: 'Filter by draw status',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        schema: {
+            example: {
+                data: [
+                    {
+                        id: 'uuid',
+                        title: 'WAVES Hoodie Launch Draw',
+                        rewardDescription: '₦50,000 cash prize',
+                        status: 'OPEN',
+                        product: {
+                            id: 'uuid',
+                            name: 'Oversized Fleece Hoodie',
+                            imageUrl: 'https://cdn.jsyk.com/products/hoodie.jpg',
+                        },
+                        participantCount: 240,
+                        winnerCount: 0,
+                        totalSoldAtDraw: 0,
+                        totalWinners: 0,
+                        opensAt: '2024-04-01T00:00:00.000Z',
+                        closesAt: '2024-04-07T23:59:59.000Z',
+                        conductedAt: null,
+                        createdAt: '2024-03-28T10:00:00.000Z',
+                    },
+                    {
+                        id: 'uuid',
+                        title: 'Burna Boy Tee Draw',
+                        rewardDescription: 'Signed album + merch bundle',
+                        status: 'COMPLETED',
+                        product: {
+                            id: 'uuid',
+                            name: 'Burna Boy Last Last Tee',
+                            imageUrl: 'https://cdn.jsyk.com/products/burna-tee.jpg',
+                        },
+                        participantCount: 520,
+                        winnerCount: 15,
+                        totalSoldAtDraw: 150,
+                        totalWinners: 15,
+                        opensAt: null,
+                        closesAt: '2024-03-15T23:59:59.000Z',
+                        conductedAt: '2024-03-16T12:00:00.000Z',
+                        createdAt: '2024-03-01T09:00:00.000Z',
+                    },
+                ],
+                total: 24,
+                page: 1,
+                limit: 20,
+                totalPages: 2,
+            },
+        },
+    }),
+    __param(0, (0, common_1.Query)('status')),
+    __param(1, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(10), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Number, Number]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "findAllDraws", null);
 exports.AdminController = AdminController = __decorate([
     (0, swagger_1.ApiBearerAuth)("bearerAuth"),
     (0, common_1.Controller)('admin'),

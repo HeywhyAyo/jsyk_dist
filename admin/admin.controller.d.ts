@@ -14,6 +14,7 @@ import { OrderStatus } from 'src/orders/enum/order.status';
 import { QueryOrderDto } from 'src/orders/dto/orders.dto';
 import { DrawService } from 'src/draw/draw.service';
 import { CreateDrawDto, UpdateDrawDto } from 'src/draw/dto/draw.dto';
+import { DrawStatus } from 'src/draw/entities/draw.entity';
 export declare class AdminController {
     private readonly adminService;
     private productService;
@@ -72,7 +73,7 @@ export declare class AdminController {
         shippedOrders: number;
         deliveredOrders: number;
     }> | undefined>;
-    findAll(query: QueryOrderDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
+    findAllOrders(query: QueryOrderDto): Promise<import("../shared/interfaces/aResponse").aResponse<{
         data: import("../orders/entities/orders.entity").Order[];
         total: number;
         page: number;
@@ -81,12 +82,12 @@ export declare class AdminController {
     }> | undefined>;
     updateStatus(id: string, status: OrderStatus): Promise<import("../shared/interfaces/aResponse").aResponse<import("../orders/entities/orders.entity").Order> | undefined>;
     findOneOrder(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("../orders/entities/orders.entity").Order> | undefined>;
-    createDraw(dto: CreateDrawDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../draw/entities/draw.entity").Draw> | undefined>;
-    findOne(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("../draw/entities/draw.entity").Draw> | undefined>;
-    update(id: string, dto: UpdateDrawDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../draw/entities/draw.entity").Draw> | undefined>;
-    close(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("../draw/entities/draw.entity").Draw> | undefined>;
+    createDraw(dto: CreateDrawDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("src/draw/entities/draw.entity").Draw> | undefined>;
+    findOne(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("src/draw/entities/draw.entity").Draw> | undefined>;
+    update(id: string, dto: UpdateDrawDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("src/draw/entities/draw.entity").Draw> | undefined>;
+    close(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("src/draw/entities/draw.entity").Draw> | undefined>;
     conduct(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<{
-        draw: import("../draw/entities/draw.entity").Draw;
+        draw: import("src/draw/entities/draw.entity").Draw;
         winners: import("../draw/entities/draw.participant.entity").DrawParticipant[];
         summary: {
             totalSold: number;
@@ -95,5 +96,12 @@ export declare class AdminController {
             buyerWinners: number;
             nonBuyerWinners: number;
         };
+    }> | undefined>;
+    findAllDraws(status: DrawStatus, page: number, limit: number): Promise<import("../shared/interfaces/aResponse").aResponse<{
+        data: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
     }> | undefined>;
 }

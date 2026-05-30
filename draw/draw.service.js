@@ -54,6 +54,48 @@ let DrawService = class DrawService {
             (0, rethrow_exception_1.rethrowIfHttpException)(error);
         }
     }
+    async findAll(status, page = 1, limit = 10) {
+        const qb = this.drawRepo
+            .createQueryBuilder('draw')
+            .leftJoinAndSelect('draw.product', 'product')
+            .loadRelationCountAndMap('draw.participantCount', 'draw.participants')
+            .loadRelationCountAndMap('draw.winnerCount', 'draw.participants', 'winner', (qb) => qb.where('winner.isWinner = true'))
+            .orderBy('draw.createdAt', 'DESC');
+        if (status) {
+            qb.where('draw.status = :status', { status });
+        }
+        qb.skip((page - 1) * limit).take(limit);
+        const [draws, total] = await qb.getManyAndCount();
+        const data = draws.map((draw) => ({
+            id: draw.id,
+            title: draw.title,
+            rewardDescription: draw.rewardDescription,
+            status: draw.status,
+            product: {
+                id: draw.product.id,
+                name: draw.product.name,
+                imageUrl: draw.product.imageUrl,
+            },
+            participantCount: draw.participantCount ?? 0,
+            winnerCount: draw.winnerCount ?? 0,
+            totalSoldAtDraw: draw.totalSoldAtDraw,
+            totalWinners: draw.totalWinners,
+            opensAt: draw.opensAt,
+            closesAt: draw.closesAt,
+            conductedAt: draw.conductedAt,
+            createdAt: draw.createdAt,
+        }));
+        return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    }
+    async findAllDraws(status, page = 1, limit = 10) {
+        try {
+            const allDraws = await this.findAll();
+            return (0, apiResponse_1.createResponse)(true, 'all drwas retrieved', allDraws);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     async getSingleDraw(drawId) {
         try {
             const draw = await this.findOne(drawId);
@@ -116,6 +158,21 @@ let DrawService = class DrawService {
         try {
             const result = await this.join(drawId, userId);
             return (0, apiResponse_1.createResponse)(true, 'Successfully joined the draw', result);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
+    async checkIfUserJoined(drawId, userId) {
+        try {
+            const alreadyJoined = await this.participantRepo.existsBy({
+                drawId,
+                userId,
+            });
+            if (alreadyJoined) {
+                return (0, apiResponse_1.createResponse)(true, 'You have already entered this draw.', { hasJoined: true });
+            }
+            return (0, apiResponse_1.createResponse)(true, 'You are not part of this draw', { hasJoined: false });
         }
         catch (error) {
             (0, rethrow_exception_1.rethrowIfHttpException)(error);
@@ -319,6 +376,14 @@ let DrawService = class DrawService {
         return {
             hasOngoingDraw: draws.length > 0,
             drawIds: draws.map((d) => d.id),
+            draws: draws.map((d) => ({
+                id: d.id,
+                title: d.title,
+                rewardDescription: d.rewardDescription,
+                opensAt: d.opensAt,
+                closesAt: d.closesAt,
+                participantCount: d.participantCount ?? 0,
+            })),
         };
     }
     async checkProductOngoingDraws(productId) {

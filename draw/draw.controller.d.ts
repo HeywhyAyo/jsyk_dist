@@ -22,5 +22,16 @@ export declare class DrawController {
     checkProductOngoingDraws(productId: string): Promise<import("../shared/interfaces/aResponse").aResponse<{
         hasOngoingDraw: boolean;
         drawIds: string[];
+        draws: {
+            id: string;
+            title: string;
+            rewardDescription: string;
+            opensAt: Date;
+            closesAt: Date;
+            participantCount: number;
+        }[];
+    }> | undefined>;
+    checkIfJoined(drawId: string, req: CustomRequest): Promise<import("../shared/interfaces/aResponse").aResponse<{
+        hasJoined: boolean;
     }> | undefined>;
 }

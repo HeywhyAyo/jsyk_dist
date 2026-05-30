@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { Draw } from './entities/draw.entity';
+import { Draw, DrawStatus } from './entities/draw.entity';
 import { DrawParticipant } from './entities/draw.participant.entity';
 import { Order } from 'src/orders/entities/orders.entity';
 import { CreateDrawDto, UpdateDrawDto } from './dto/draw.dto';
@@ -10,6 +10,20 @@ export declare class DrawService {
     constructor(drawRepo: Repository<Draw>, participantRepo: Repository<DrawParticipant>, orderRepo: Repository<Order>);
     create(dto: CreateDrawDto): Promise<Draw>;
     createnewDraw(dto: CreateDrawDto): Promise<import("../shared/interfaces/aResponse").aResponse<Draw> | undefined>;
+    findAll(status?: DrawStatus, page?: number, limit?: number): Promise<{
+        data: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>;
+    findAllDraws(status?: DrawStatus, page?: number, limit?: number): Promise<import("../shared/interfaces/aResponse").aResponse<{
+        data: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }> | undefined>;
     getSingleDraw(drawId: string): Promise<import("../shared/interfaces/aResponse").aResponse<Draw> | undefined>;
     join(drawId: string, userId: string): Promise<{
         message: string;
@@ -20,6 +34,9 @@ export declare class DrawService {
         message: string;
         isPurchaser: boolean;
         participant: DrawParticipant;
+    }> | undefined>;
+    checkIfUserJoined(drawId: string, userId: string): Promise<import("../shared/interfaces/aResponse").aResponse<{
+        hasJoined: boolean;
     }> | undefined>;
     conductDraw(drawId: string): Promise<{
         draw: Draw;
@@ -73,10 +90,26 @@ export declare class DrawService {
     getOngoingDraws(productId: string): Promise<{
         hasOngoingDraw: boolean;
         drawIds: string[];
+        draws: {
+            id: string;
+            title: string;
+            rewardDescription: string;
+            opensAt: Date;
+            closesAt: Date;
+            participantCount: number;
+        }[];
     }>;
     checkProductOngoingDraws(productId: string): Promise<import("../shared/interfaces/aResponse").aResponse<{
         hasOngoingDraw: boolean;
         drawIds: string[];
+        draws: {
+            id: string;
+            title: string;
+            rewardDescription: string;
+            opensAt: Date;
+            closesAt: Date;
+            participantCount: number;
+        }[];
     }> | undefined>;
     private shuffleArray;
 }

@@ -172,8 +172,8 @@ initializes a Paystack payment session.
                 summary: 'Standard checkout with coupon',
                 value: {
                     items: [
-                        { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2, selectedColor: '#1A1A1A' },
-                        { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1, selectedColor: null },
+                        { productId: 'a3b8c1d2-4e5f-6789-abcd-ef0123456789', quantity: 2, selectedSize: 'XL', selectedColor: '#1A1A1A' },
+                        { productId: 'b1c2d3e4-5f67-89ab-cdef-012345678901', quantity: 1, selectedSize: null, selectedColor: null },
                     ],
                     shippingAddressId: 'c4d5e6f7-8901-2345-bcde-f01234567890',
                     shippingMethod: 'EXPRESS',
