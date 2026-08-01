@@ -26,6 +26,8 @@ let Song = class Song {
     youtubeMusicUrl;
     tidalUrl;
     isActive;
+    startFrom;
+    duration;
     createdAt;
     updatedAt;
     products;
@@ -83,6 +85,14 @@ __decorate([
     (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
 ], Song.prototype, "isActive", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Song.prototype, "startFrom", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Song.prototype, "duration", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

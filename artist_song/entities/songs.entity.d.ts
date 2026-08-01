@@ -13,6 +13,8 @@ export declare class Song {
     youtubeMusicUrl: string;
     tidalUrl: string;
     isActive: boolean;
+    startFrom: number;
+    duration: number;
     createdAt: Date;
     updatedAt: Date;
     products: Product[];

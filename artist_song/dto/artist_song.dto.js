@@ -160,6 +160,8 @@ class CreateSongDto {
     appleMusicUrl;
     youtubeMusicUrl;
     tidalUrl;
+    duration;
+    startFrom;
 }
 exports.CreateSongDto = CreateSongDto;
 __decorate([
@@ -227,6 +229,20 @@ __decorate([
     (0, class_validator_1.IsUrl)(),
     __metadata("design:type", String)
 ], CreateSongDto.prototype, "tidalUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 180, description: 'Song duration in seconds' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateSongDto.prototype, "duration", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 180, description: 'Song starts from in seconds' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateSongDto.prototype, "startFrom", void 0);
 class UpdateSongDto {
     title;
     songId;
@@ -237,6 +253,8 @@ class UpdateSongDto {
     youtubeMusicUrl;
     tidalUrl;
     isActive;
+    duration;
+    startFrom;
 }
 exports.UpdateSongDto = UpdateSongDto;
 __decorate([
@@ -295,6 +313,20 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateSongDto.prototype, "isActive", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 180, description: 'Song duration in seconds' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], UpdateSongDto.prototype, "duration", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 180, description: 'Song starts from in seconds' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], UpdateSongDto.prototype, "startFrom", void 0);
 class AttachSongsDto {
     songIds;
     requiresQrcode;

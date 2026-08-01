@@ -30,6 +30,8 @@ export declare class CreateSongDto {
     appleMusicUrl?: string;
     youtubeMusicUrl?: string;
     tidalUrl?: string;
+    duration?: number;
+    startFrom?: number;
 }
 export declare class UpdateSongDto {
     title?: string;
@@ -41,6 +43,8 @@ export declare class UpdateSongDto {
     youtubeMusicUrl?: string;
     tidalUrl?: string;
     isActive?: boolean;
+    duration?: number;
+    startFrom?: number;
 }
 export declare class AttachSongsDto {
     songIds: string[];
