@@ -42,6 +42,13 @@ let Order = class Order {
     items;
     payment;
     shipment;
+    printifyOrderId;
+    printifyOrderStatus;
+    trackingNumber;
+    trackingUrl;
+    shippingCarrier;
+    shippedAt;
+    deliveredAt;
 };
 exports.Order = Order;
 __decorate([
@@ -144,6 +151,50 @@ __decorate([
     (0, typeorm_1.OneToOne)(() => shipment_entity_1.Shipment, (shipment) => shipment.order, { cascade: true }),
     __metadata("design:type", shipment_entity_1.Shipment)
 ], Order.prototype, "shipment", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        nullable: true,
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "printifyOrderId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        nullable: true,
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "printifyOrderStatus", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        nullable: true,
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "trackingNumber", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        nullable: true,
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "trackingUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        nullable: true,
+    }),
+    __metadata("design:type", String)
+], Order.prototype, "shippingCarrier", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'timestamp',
+        nullable: true,
+    }),
+    __metadata("design:type", Date)
+], Order.prototype, "shippedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'timestamp',
+        nullable: true,
+    }),
+    __metadata("design:type", Date)
+], Order.prototype, "deliveredAt", void 0);
 exports.Order = Order = __decorate([
     (0, typeorm_1.Entity)('orders')
 ], Order);

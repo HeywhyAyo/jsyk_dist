@@ -15,6 +15,7 @@ import { QueryOrderDto } from 'src/orders/dto/orders.dto';
 import { DrawService } from 'src/draw/draw.service';
 import { CreateDrawDto, UpdateDrawDto } from 'src/draw/dto/draw.dto';
 import { DrawStatus } from 'src/draw/entities/draw.entity';
+import { PrintifyProductDetailsDto } from 'src/printify/dto/PrintifyProductDetails.dto';
 export declare class AdminController {
     private readonly adminService;
     private productService;
@@ -40,6 +41,7 @@ export declare class AdminController {
     updateSongById(dto: UpdateSongDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../artist_song/entities/songs.entity").Song> | undefined>;
     findByArtist(artistId: string): Promise<import("../shared/interfaces/aResponse").aResponse<import("../artist_song/entities/songs.entity").Song[]> | undefined>;
     attachToProduct(productId: string, dto: AttachSongsDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../products/entities/products.entity").Product> | undefined>;
+    completePrintifyProduct(productId: string, dto: PrintifyProductDetailsDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../products/entities/products.entity").Product> | undefined>;
     detachFromProduct(productId: string, dto: AttachSongsDto): Promise<import("../shared/interfaces/aResponse").aResponse<import("../products/entities/products.entity").Product> | undefined>;
     removeArtist(artistId: string): Promise<import("../shared/interfaces/aResponse").aResponse<boolean> | undefined>;
     addImages(id: string, dto: AddProductImagesDto, file?: Express.Multer.File[]): Promise<import("../shared/interfaces/aResponse").aResponse<import("../products/entities/products.entity").Product> | undefined>;

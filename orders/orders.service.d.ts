@@ -4,6 +4,7 @@ import { OrderStatus } from './enum/order.status';
 import { QueryOrderDto } from './dto/orders.dto';
 export declare class OrdersService {
     private readonly orderRepo;
+    private readonly logger;
     constructor(orderRepo: Repository<Order>);
     getStats(): Promise<{
         totalOrders: number;
@@ -53,4 +54,6 @@ export declare class OrdersService {
     findByUserOrder(orderid: string, userid: string): Promise<import("../shared/interfaces/aResponse").aResponse<Order> | undefined>;
     updateStatus(id: string, status: OrderStatus): Promise<Order>;
     updateOrderStatus(id: string, status: OrderStatus): Promise<import("../shared/interfaces/aResponse").aResponse<Order> | undefined>;
+    updatePrintifyTracking(dto: UpdatePrintifyTrackingDto): Promise<void>;
+    updatePrintifyStatus(printifyOrderId: string, status: string): Promise<Order | undefined>;
 }

@@ -69,7 +69,6 @@ let UsersService = class UsersService {
         return await this.userRepository.save(newUser);
     }
     async sign_in_User_service(dto) {
-        console.log("Login DTO:", dto);
         try {
             if (!dto.email || !dto.password) {
                 const apiResponse = (0, apiResponse_1.createUnSuccessfulResponse)("Email or password cannot be empty");

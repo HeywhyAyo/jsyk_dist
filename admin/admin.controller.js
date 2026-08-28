@@ -37,6 +37,7 @@ const orders_dto_1 = require("../orders/dto/orders.dto");
 const draw_service_1 = require("../draw/draw.service");
 const draw_dto_1 = require("../draw/dto/draw.dto");
 const draw_entity_1 = require("../draw/entities/draw.entity");
+const PrintifyProductDetails_dto_1 = require("../printify/dto/PrintifyProductDetails.dto");
 let AdminController = class AdminController {
     adminService;
     productService;
@@ -93,6 +94,9 @@ let AdminController = class AdminController {
     }
     async attachToProduct(productId, dto) {
         return await this.songService.attachToProduct(productId, dto.songIds, dto.requiresQrcode);
+    }
+    async completePrintifyProduct(productId, dto) {
+        return await this.productService.update_product_of_printify(productId, dto);
     }
     async detachFromProduct(productId, dto) {
         return await this.songService.detachFromProduct(productId, dto.songIds);
@@ -523,6 +527,18 @@ __decorate([
     __metadata("design:paramtypes", [String, artist_song_dto_1.AttachSongsDto]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "attachToProduct", null);
+__decorate([
+    (0, common_1.Post)('complete-printify/:productId'),
+    (0, swagger_1.ApiOperation)({ summary: 'complete printify product and update details - Step - 4' }),
+    (0, swagger_1.ApiParam)({ name: 'productId', description: 'Product UUID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Product updated with printify details.' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Product not found.' }),
+    __param(0, (0, common_1.Param)('productId', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, PrintifyProductDetails_dto_1.PrintifyProductDetailsDto]),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "completePrintifyProduct", null);
 __decorate([
     (0, common_1.Post)('detach/:productId'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

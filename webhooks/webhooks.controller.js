@@ -18,6 +18,7 @@ const common_1 = require("@nestjs/common");
 const crypto = require("crypto");
 const webhooks_service_1 = require("./webhooks.service");
 const stripe_1 = require("stripe");
+const printify_webhook_dto_1 = require("../printify/dto/printify-webhook.dto");
 let WebhooksController = WebhooksController_1 = class WebhooksController {
     webhookService;
     logger = new common_1.Logger(WebhooksController_1.name);
@@ -46,18 +47,35 @@ let WebhooksController = WebhooksController_1 = class WebhooksController {
         });
         return { received: true };
     }
+    async handleWebhook(req, signature, payload) {
+        this.webhookService.verifySignature(req.rawBody, signature);
+        await this.webhookService.handle_Printify_Webhook(payload);
+        return {
+            received: true,
+        };
+    }
 };
 exports.WebhooksController = WebhooksController;
 __decorate([
-    (0, common_1.Post)('complete-heady-stripe-resonnance'),
+    (0, common_1.Post)('paystack/complete-heady-stripe-resonnance'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], WebhooksController.prototype, "handle", null);
+__decorate([
+    (0, common_1.Post)('printify/them-never-lolo-hte-confirm-wetin-dey-ressonima'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Headers)('x-pfy-signature')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, printify_webhook_dto_1.PrintifyWebhookDto]),
+    __metadata("design:returntype", Promise)
+], WebhooksController.prototype, "handleWebhook", null);
 exports.WebhooksController = WebhooksController = WebhooksController_1 = __decorate([
-    (0, common_1.Controller)('webhooks/paystack'),
+    (0, common_1.Controller)('webhooks'),
     __metadata("design:paramtypes", [webhooks_service_1.WebhooksService])
 ], WebhooksController);
 //# sourceMappingURL=webhooks.controller.js.map

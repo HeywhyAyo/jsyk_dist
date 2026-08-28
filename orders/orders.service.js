@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var OrdersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrdersService = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,8 +21,9 @@ const orders_entity_1 = require("./entities/orders.entity");
 const order_status_1 = require("./enum/order.status");
 const rethrow_exception_1 = require("../shared/utilities/rethrow-exception");
 const apiResponse_1 = require("../shared/utilities/apiResponse");
-let OrdersService = class OrdersService {
+let OrdersService = OrdersService_1 = class OrdersService {
     orderRepo;
+    logger = new common_1.Logger(OrdersService_1.name);
     constructor(orderRepo) {
         this.orderRepo = orderRepo;
     }
@@ -228,9 +230,57 @@ let OrdersService = class OrdersService {
             (0, rethrow_exception_1.rethrowIfHttpException)(error);
         }
     }
+    async updatePrintifyTracking(dto) {
+        const order = await this.orderRepo.findOne({
+            where: {
+                printifyOrderId: dto.printifyOrderId,
+            },
+        });
+        if (!order) {
+            this.logger.warn(`Order with Printify ID ${dto.printifyOrderId} not found`);
+            return;
+        }
+        order.printifyOrderStatus =
+            dto.status;
+        if (dto.carrier) {
+            order.shippingCarrier =
+                dto.carrier;
+        }
+        if (dto.trackingNumber) {
+            order.trackingNumber =
+                dto.trackingNumber;
+        }
+        if (dto.trackingUrl) {
+            order.trackingUrl =
+                dto.trackingUrl;
+        }
+        if (dto.shippedAt) {
+            order.shippedAt =
+                dto.shippedAt;
+        }
+        if (dto.deliveredAt) {
+            order.deliveredAt =
+                dto.deliveredAt;
+        }
+        await this.orderRepo.save(order);
+    }
+    async updatePrintifyStatus(printifyOrderId, status) {
+        const order = await this.orderRepo.findOne({
+            where: {
+                printifyOrderId,
+            },
+        });
+        if (!order) {
+            this.logger.warn(`Order with Printify ID ${printifyOrderId} not found`);
+            return;
+        }
+        order.printifyOrderStatus = status;
+        await this.orderRepo.save(order);
+        return order;
+    }
 };
 exports.OrdersService = OrdersService;
-exports.OrdersService = OrdersService = __decorate([
+exports.OrdersService = OrdersService = OrdersService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(orders_entity_1.Order)),
     __metadata("design:paramtypes", [typeorm_2.Repository])

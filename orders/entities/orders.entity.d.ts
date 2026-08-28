@@ -29,4 +29,11 @@ export declare class Order {
     items: OrderItem[];
     payment: Payment;
     shipment: Shipment;
+    printifyOrderId?: string;
+    printifyOrderStatus?: string;
+    trackingNumber?: string;
+    trackingUrl?: string;
+    shippingCarrier?: string;
+    shippedAt?: Date;
+    deliveredAt?: Date;
 }

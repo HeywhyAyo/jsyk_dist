@@ -41,6 +41,7 @@ const analytics_module_1 = require("./analytics/analytics.module");
 const draw_module_1 = require("./draw/draw.module");
 const draw_participant_entity_1 = require("./draw/entities/draw.participant.entity");
 const draw_entity_1 = require("./draw/entities/draw.entity");
+const printify_module_1 = require("./printify/printify.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -68,7 +69,8 @@ exports.AppModule = AppModule = __decorate([
             collection_module_1.CollectionModule,
             stripe_module_1.StripeModule,
             analytics_module_1.AnalyticsModule,
-            draw_module_1.DrawModule
+            draw_module_1.DrawModule,
+            printify_module_1.PrintifyModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

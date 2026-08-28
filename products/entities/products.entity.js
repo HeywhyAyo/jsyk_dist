@@ -51,6 +51,13 @@ let Product = class Product {
     collection;
     collectionId;
     musicCategory;
+    fulfillmentProvider;
+    printifyProductId;
+    printifyBlueprintId;
+    printifyPrintProviderId;
+    printifyArtworkId;
+    artworkUrl;
+    printifyVariantId;
 };
 exports.Product = Product;
 __decorate([
@@ -186,6 +193,32 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'enum', enum: muscic_category_1.MusicCategory, nullable: true }),
     __metadata("design:type", String)
 ], Product.prototype, "musicCategory", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Product.prototype, "printifyProductId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Product.prototype, "printifyBlueprintId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Product.prototype, "printifyPrintProviderId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Product.prototype, "printifyArtworkId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Product.prototype, "artworkUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        nullable: true,
+    }),
+    __metadata("design:type", Number)
+], Product.prototype, "printifyVariantId", void 0);
 exports.Product = Product = __decorate([
     (0, typeorm_1.Entity)('products')
 ], Product);

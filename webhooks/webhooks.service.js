@@ -21,23 +21,31 @@ const payment_enums_1 = require("../payments/enums/payment.enums");
 const payment_entity_1 = require("../payments/entities/payment.entity");
 const orders_entity_1 = require("../orders/entities/orders.entity");
 const order_status_1 = require("../orders/enum/order.status");
+const orders_service_1 = require("../orders/orders.service");
 const products_service_1 = require("../products/products.service");
 const rethrow_exception_1 = require("../shared/utilities/rethrow-exception");
 const apiResponse_1 = require("../shared/utilities/apiResponse");
 const template_names_1 = require("../shared/constant/template.names");
 const users_service_1 = require("../users/users.service");
 const emailSubjects_1 = require("../shared/constant/emailSubjects");
+const crypto_1 = require("crypto");
+const printify_order_service_1 = require("../printify/printify-order.service");
 let WebhooksService = WebhooksService_1 = class WebhooksService {
     paymentRepo;
     orderRepo;
+    orderService;
     productService;
     usersService;
+    printifyOrderService;
     logger = new common_1.Logger(WebhooksService_1.name);
-    constructor(paymentRepo, orderRepo, productService, usersService) {
+    PRINTIFY_WEBHOOK_SECRET = process.env.PRINTIFY_WEBHOOK_SECRET;
+    constructor(paymentRepo, orderRepo, orderService, productService, usersService, printifyOrderService) {
         this.paymentRepo = paymentRepo;
         this.orderRepo = orderRepo;
+        this.orderService = orderService;
         this.productService = productService;
         this.usersService = usersService;
+        this.printifyOrderService = printifyOrderService;
     }
     async handleEvent(event) {
         try {
@@ -72,8 +80,11 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
             where: { transactionId: reference },
             relations: {
                 order: {
-                    items: true,
+                    items: {
+                        product: true,
+                    },
                     user: true,
+                    shippingAddress: true,
                 },
             },
         });
@@ -147,6 +158,40 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
             trackingLink: 'https://jsyk.com/track-order/' + payment.order.id,
             year: new Date().getFullYear()
         };
+        const printifyOrder = {
+            externalId: payment.order.orderNumber,
+            label: `Printify Order #${payment.order.orderNumber}`,
+            lineItems: payment.order.items.map((item) => ({
+                productId: item.product?.printifyProductId ??
+                    item.productId,
+                variantId: item.product?.printifyVariantId ??
+                    0,
+                quantity: item.quantity,
+                externalId: item.id,
+            })),
+            shippingMethod: 1,
+            sendShippingNotification: true,
+            address: {
+                firstName: payment.order.shippingAddress.fullName?.split(' ')[0] ??
+                    payment.order.user.firstName ??
+                    'Customer',
+                lastName: payment.order.shippingAddress.fullName
+                    ?.split(' ')
+                    .slice(1)
+                    .join(' ') ??
+                    payment.order.user.lastName ??
+                    'Customer',
+                email: payment.order.user.email,
+                phone: payment.order.shippingAddress.phone,
+                address1: payment.order.shippingAddress.street,
+                address2: undefined,
+                city: payment.order.shippingAddress.city,
+                region: payment.order.shippingAddress.state,
+                zip: payment.order.shippingAddress.postalCode,
+                country: payment.order.shippingAddress.country,
+            },
+        };
+        await this.printifyOrderService.create_Printify_Order(printifyOrder);
         await this.purchaseEailSender(emailData);
         const apiResponse = (0, apiResponse_1.createResponse)(true, 'Payment processed successfully.', true);
         throw new common_1.HttpException(apiResponse, common_1.HttpStatus.OK);
@@ -205,6 +250,77 @@ let WebhooksService = WebhooksService_1 = class WebhooksService {
         };
         await this.usersService.sender(data.email, emailSubjects_1.SUBJECTS.PRODUCT_PURCHASED, template_names_1.TEMPLATE.PRODUCT_PURCHASED_NAME, emailParameters);
     }
+    verifySignature(rawBody, signature) {
+        if (!rawBody || !signature) {
+            throw new common_1.UnauthorizedException('Missing Printify webhook signature');
+        }
+        const secret = this.PRINTIFY_WEBHOOK_SECRET;
+        const digest = (0, crypto_1.createHmac)('sha256', secret)
+            .update(rawBody)
+            .digest('hex');
+        const expectedSignature = `sha256=${digest}`;
+        const receivedBuffer = Buffer.from(signature);
+        const expectedBuffer = Buffer.from(expectedSignature);
+        if (receivedBuffer.length !==
+            expectedBuffer.length) {
+            throw new common_1.UnauthorizedException('Invalid Printify webhook signature');
+        }
+        const valid = (0, crypto_1.timingSafeEqual)(receivedBuffer, expectedBuffer);
+        if (!valid) {
+            throw new common_1.UnauthorizedException('Invalid Printify webhook signature');
+        }
+    }
+    async handle_Printify_Webhook(payload) {
+        switch (payload.type) {
+            case 'order:shipment:created':
+                await this.handleShipmentCreated(payload);
+                break;
+            case 'order:shipment:delivered':
+                await this.handleShipmentDelivered(payload);
+                break;
+            case 'order:updated':
+                await this.handleOrderUpdated(payload);
+                break;
+            default:
+                this.logger.debug(`Ignoring Printify event: ${payload.type}`);
+        }
+    }
+    async handleShipmentCreated(payload) {
+        const printifyOrderId = payload.resource.id;
+        const data = payload.resource.data;
+        await this.orderService.updatePrintifyTracking({
+            printifyOrderId,
+            status: 'SHIPPED',
+            carrier: data.carrier.code,
+            trackingNumber: data.carrier.tracking_number,
+            trackingUrl: data.carrier.tracking_url,
+            shippedAt: data.shipped_at
+                ? new Date(data.shipped_at)
+                : undefined,
+        });
+    }
+    async handleShipmentDelivered(payload) {
+        const printifyOrderId = payload.resource.id;
+        const data = payload.resource.data;
+        await this.orderService.updatePrintifyTracking({
+            printifyOrderId,
+            status: 'DELIVERED',
+            carrier: data.carrier.code,
+            trackingNumber: data.carrier.tracking_number,
+            trackingUrl: data.carrier.tracking_url,
+            deliveredAt: data.delivered_at
+                ? new Date(data.delivered_at)
+                : undefined,
+        });
+    }
+    async handleOrderUpdated(payload) {
+        const printifyOrderId = payload.resource.id;
+        const status = payload.resource.data?.['status'];
+        if (!status) {
+            return;
+        }
+        await this.orderService.updatePrintifyStatus(printifyOrderId, status);
+    }
 };
 exports.WebhooksService = WebhooksService;
 exports.WebhooksService = WebhooksService = WebhooksService_1 = __decorate([
@@ -213,7 +329,9 @@ exports.WebhooksService = WebhooksService = WebhooksService_1 = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(orders_entity_1.Order)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
+        orders_service_1.OrdersService,
         products_service_1.ProductsService,
-        users_service_1.UsersService])
+        users_service_1.UsersService,
+        printify_order_service_1.PrintifyOrderService])
 ], WebhooksService);
 //# sourceMappingURL=webhooks.service.js.map

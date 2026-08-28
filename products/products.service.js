@@ -267,6 +267,20 @@ let ProductsService = class ProductsService {
             (0, rethrow_exception_1.rethrowIfHttpException)(error);
         }
     }
+    async update_product_of_printify(id, dto) {
+        const product = await this.findOneProductByAdmin(id);
+        if (!product) {
+            throw new common_1.HttpException((0, apiResponse_1.createUnSuccessfulResponse)(`Product #${id} not found.`), common_1.HttpStatus.BAD_REQUEST);
+        }
+        Object.assign(product, dto);
+        try {
+            const updatedProduct = await this.productRepo.save(product);
+            return (0, apiResponse_1.createResponse)(true, 'Product updated successfully with printify details.', updatedProduct);
+        }
+        catch (error) {
+            (0, rethrow_exception_1.rethrowIfHttpException)(error);
+        }
+    }
     async addImagesToProduct(id, dto, files) {
         try {
             const product = await this.findOneProductByAdmin(id);

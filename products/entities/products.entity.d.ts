@@ -39,4 +39,11 @@ export declare class Product {
     collection: Collection;
     collectionId: string;
     musicCategory: MusicCategory;
+    fulfillmentProvider: 'INTERNAL' | 'PRINTIFY';
+    printifyProductId?: string;
+    printifyBlueprintId?: number;
+    printifyPrintProviderId?: number;
+    printifyArtworkId?: string;
+    artworkUrl?: string;
+    printifyVariantId?: number;
 }

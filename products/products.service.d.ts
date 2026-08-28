@@ -3,6 +3,7 @@ import { Product } from './entities/products.entity';
 import { CreateProductDto, UpdateProductDto, QueryProductDto, AddProductImagesDto, RemoveProductImageDto } from './dto/createProduct.dto';
 import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
+import { PrintifyProductDetailsDto } from 'src/printify/dto/PrintifyProductDetails.dto';
 export declare class ProductsService {
     private readonly productRepo;
     private readonly usersService;
@@ -32,6 +33,7 @@ export declare class ProductsService {
     find_One_product_by_slug(slug: string): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
     update(id: string, dto: UpdateProductDto): Promise<Product>;
     update_product(id: string, dto: UpdateProductDto): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
+    update_product_of_printify(id: string, dto: PrintifyProductDetailsDto): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
     addImagesToProduct(id: string, dto: AddProductImagesDto, files?: Express.Multer.File[]): Promise<import("../shared/interfaces/aResponse").aResponse<Product> | undefined>;
     removeImage(id: string, dto: RemoveProductImageDto): Promise<Product>;
     toggleActive(id: string): Promise<import("../shared/interfaces/aResponse").aResponse<{
